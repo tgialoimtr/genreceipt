@@ -8,13 +8,13 @@ from items import StringListGen, Gen
 from faker import Faker
 import re
 import random
+from genline.combiner import ListGenWithProb
+import rstr
 
 
 def replaceZeroWithProb(oridatetime, replaceProb=0.5):
     if np.random.rand() < replaceProb:
         result = re.sub(r'0(\d\D)', r'\1', oridatetime)
-        print oridatetime
-        print result
         return result
     else:
         return oridatetime
@@ -23,15 +23,41 @@ def unicode2ascii(text):
     ret = ''.join(i for i in text if ord(i)<128)
     return ret.encode('utf-8')
 
-def changeCaseWithProb(oriword, upper=0.5, lower=0.25): #Capitalize = 1.0 - upper - lower
+def changeCaseWithProb(sentence, upper=0.5, lower=0.25): #Capitalize = 1.0 - upper - lower
     p = np.random.rand()
     if upper > p:
-        return oriword.upper()
+        return sentence.upper()
     elif upper + lower > p:
-        return oriword.lower()
+        return sentence.lower()
     else:
-        return oriword.capitalize()
+        l = [w.capitalize() for w in sentence.split(' ')]
+        return ' '.join(l)
 
+class ChangeCaseGen(Gen):
+    
+    def __init__(self, basegen, upper=0.5, lower=0.25): #Capitalize = 1.0 - upper - lower
+        self.basegen = basegen
+        self.upper = upper
+        self.lower = lower
+    
+    def gen(self):
+        return changeCaseWithProb(self.basegen.gen(), self.upper, self.lower)
+
+class CL0Gen(Gen):
+    def __init__(self):
+        self.faker = Faker()
+        self.dateformat = "%d%m%y"
+        self.timeformat = "%H:%M:%S"
+        self.c0 = "[ ]\d{5}[ ]\d{4}[ ]"
+        self.c1 = "[ ]\d{4}[ ][A-Za-z]{2,5}"
+        
+    def gen(self):
+        d = self.faker.future_date(end_date="+350d")
+        d = d.strftime(self.dateformat)
+        t = self.faker.time(pattern=self.timeformat, end_datetime=None)
+        return rstr.xeger(d+self.c0+t+self.c1)
+    
+    
 class DateGen(Gen):
     '''
     Date
@@ -41,20 +67,15 @@ class DateGen(Gen):
         Constructor
         '''
         self.faker = Faker()
-        self.dateformat = StringListGen([
-            "%Y-%m-%d",
-            "%d/%m/%Y",
-            "%d %b %Y",
-            "%d %B %Y",
-            "%d/%m/%y",
-            ])
+        self.dateformat = ListGenWithProb(["%Y/%m/%d","%Y-%m-%d","%d-%m-%[yY]([ ]\(%a\))?","%d/%m/%[yY]","(%a[ ])?%d %m %Y","%d %b %Y","%d %b' %y","%b %d, %Y","%d\.%m\.%[yY]"],
+                                          [0.08      ,0.08      ,0.15                     ,0.3          , 0.15             , 0.05     ,0.04      ,0.05       ,0.1])
         
     def gen(self):
         d = self.faker.future_date(end_date="+350d")
         fm = self.dateformat.gen()
         d = d.strftime(fm)
-        d = replaceZeroWithProb(d, 0.99)
-        d = changeCaseWithProb(d, upper=0.5, lower=0.5)
+        d = replaceZeroWithProb(d, 0.15)
+        d = changeCaseWithProb(d, upper=0.5, lower=0.0)
         return d
 
 
@@ -67,16 +88,14 @@ class TimeGen(Gen):
         Constructor
         '''
         self.faker = Faker()
-        self.timeformat = StringListGen([
-            "%H:%M:%S",
-            "%I:%M:%S %p",
-            "%d/%m/%Y"
-            ])
+        self.dateformat = ListGenWithProb(["%H:%M(:%S)?","%I:%M(:%S)[ ]?%p"],[0.5,0.5])
+
         
     def gen(self):
-        d = self.faker.future_date(end_date="+350d")
         fm = self.dateformat.gen()
-        d = replaceZeroWithProb(d.strftime(fm))
+        t = self.faker.time(pattern=fm, end_datetime=None)
+        d = replaceZeroWithProb(t)
+        d = changeCaseWithProb(d, upper=0.5, lower=0.1)
         return d
 
 
@@ -101,12 +120,21 @@ class StoreGen(Gen):
             rs = storestr
         return changeCaseWithProb(rs, upper=0.75, lower=0.0)
 
- 
+
+class NameGen(Gen):
+    
+    def __init__(self):
+        self.faker = Faker()
+    def gen(self):
+        return self.faker.name()
+    
+    
 class ParragraphGen(Gen): 
     
-    def __init__(self, dictpath):
+    def __init__(self, dictpath, numword=2):
         f = open(dictpath, 'r')
         self.wordset = set()
+        self.numword = numword
         temp = set()
         for line in f:
             temp.update(set(line.split(' ')))
@@ -116,13 +144,14 @@ class ParragraphGen(Gen):
                 self.wordset.add(w)
     
     def gen(self):
-        words = random.sample(self.wordset, 2)
+        words = random.sample(self.wordset, self.numword)
         return ' '.join(words)
     
           
 if __name__ == '__main__':
-    g = ParragraphGen('/home/loitg/workspace/genreceipt/resource/parragraph.txt')
-    for i in range(20):
+#     g = ParragraphGen('/home/loitg/workspace/genreceipt/resource/parragraph.txt')
+    g = CL0Gen()
+    for i in range(200):
         print '----'+g.gen()+'------'
             
             

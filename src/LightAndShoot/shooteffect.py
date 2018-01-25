@@ -10,6 +10,9 @@ from Operations import Distort, RotateRange
 from PIL import Image
 
 class ShootEffect(object):
+    '''
+    Includes: resize, jpeg artifact , blur (horizen, vertical), matnet, distort/warp, curved line, noise(above/below), foldeffect, bg(logo))
+    '''
     def __init__(self):
         self.p_artifact = 0.3
         self.p_blur = 0.2
@@ -20,28 +23,36 @@ class ShootEffect(object):
         self.fold_warp =  0.2
         self.p_matnet = 0
         self.p_ = 0
-        self.distortor = Distort(0.8, 2,4, 4)
+        self.distortor = Distort(0.8, 8,2, 4)
         self.rotator = RotateRange(0.8, 5,5)
-        # resize, jpeg artifact , blur (horizen, vertical), matnet, distort/warp, curved line, noise(above/below), foldeffect, bg(logo))
-        
+
+    # mask
     def matnet(self, mask):
-        strength = np.random.rand()
-        strength = mask.shape[1] / mask.shape[0] * 2 * strength ** 4
-        strength = 8.4 * 0.5
-        mask = inkeffect(mask, nplaces=int(strength), strength=strength/100.0, onlyshrink=False)
+        holesmask = noiseMask(mask, nplaces=200, relative_r=0.05, strength=(0.2,0.7), bsz=1.0)
+        return mask*(1.0-holesmask)
+
+    # color image
+    def heterogeneous(self, line):
+        holesmask = noiseMask(line[:,:,0], nplaces=3, relative_r=0.5, strength=(0.05, 0.15), bsz=20)
+        holesmask = 1.0-holesmask
+        line = line*holesmask[:,:,np.newaxis]
+        return line.astype(np.uint8)
+    
+    # textmask
+    def inkeffect(self, mask):
+        nplaces = mask.shape[1] / mask.shape[0] * 4 * np.random.rand() ** 2
+        mask = inkeffect(mask, nplaces=int(nplaces), strength=0.1)
         return mask
     
+    # textmask
     def blur(self, mask):
         bsz = 1.0 + 0.1*np.random.randn()
         sz = (np.random.randn(2)*10).astype(int)
         sz = 2*sz +1
         mask = cv2.GaussianBlur(mask,tuple(sz),bsz)
         return mask
- 
-    def fold(self, bg, fg):
-
-        return bg, fg
     
+    # color image
     def addnoise(self, line):
         noises = np.random.randn(*line.shape[:2])*np.random.randint(1,10)
         noises = noises[:,:,np.newaxis] + np.random.randn(*line.shape)*np.random.randint(1,3)
@@ -49,55 +60,72 @@ class ShootEffect(object):
         line = np.clip(line, 0, 255).astype(np.uint8)
         return line
     
+    # color image
+    def colorBlob(self, line):
+        colormask = noiseMask(line[:,:,0], nplaces=3, relative_r=0.5, strength=(0.2,0.2), bsz=0.1)
+        logo_cl = np.random.randint(150,250, size=3)
+        rs = (((1-colormask)*1.0)[:,:,np.newaxis] * line
+                    + colormask[:,:,np.newaxis]*logo_cl    ) 
+        return np.clip(rs,0,255).astype(np.uint8)
+        
+    
     def combine(self, textmask, bg_cl, fg_cl):
         textmask = textmask/255.0
         rs = (((1-textmask)*1.0)[:,:,None] * bg_cl
                     + textmask[:,:,None]*fg_cl    )
         return np.clip(rs,0,255).astype(np.uint8)
 
+    # image
     def lowresolution(self, img):
         realheight = np.random.randint(13,32)
         r = realheight*1.0/img.shape[0]
         img = cv2.resize(img, (0,0), fx = r, fy = r)
         img = cv2.resize(img, (0,0), fx = 1.0/r, fy = 1.0/r)
         return img
-        
+    
+    # image
     def jpegartifact(self, img):
         q = np.random.randint(40,90)
         cv2.imwrite('/tmp/789789789.jpg', img, [cv2.IMWRITE_JPEG_QUALITY, q])
         img = cv2.imread('/tmp/789789789.jpg')
         return img
     
-    def distort(self, img):
+    # image
+    def rotate(self, img):
         pilimg = Image.fromarray(img)
-        pilimg = self.rotator.perform_operation(pilimg)   
-#         pilimg = self.distortor.perform_operation(pilimg)
-             
+        pilimg = self.rotator.perform_operation(pilimg)             
         img = np.array(pilimg)
         return img
-    
 
-def inkeffect(oritext, nplaces=20, strength=0.1, onlyshrink=False):
+    # image
+    def distort(self, img):
+        pilimg = Image.fromarray(img)   
+        pilimg = self.distortor.perform_operation(pilimg)
+        img = np.array(pilimg)
+        return img
+
+
+def noiseMask(oritext, nplaces=20, relative_r=0.1, strength=(0.0,1.0), bsz=4):   
     rmask = np.zeros_like(oritext, dtype=np.float)
-    rs = np.zeros_like(oritext)
     (h,w) = oritext.shape[:2]
-    
-    print nplaces, strength
     for i in range(nplaces):
-        r = np.random.randint(h/3.5)
-        if not onlyshrink:
-            inten = np.random.rand()*h*strength*2-h*strength
-        else:
-            inten = -np.random.rand()*h*strength
+        r = int(relative_r*h)
+        if r < 1: continue
+        r = np.random.randint(r)
+        inten = np.random.uniform(strength[0], strength[1])
         y = np.random.randint(h)
         x = np.random.randint(w)
         cv2.circle(rmask,(x,y), r, inten, -1)
-    
-    bsz = 1.5 + 0.1*np.random.randn()
-    rmask = cv2.GaussianBlur(rmask,(5,5),bsz)
-     
+    rmask = cv2.GaussianBlur(rmask,(31,31), sigmaX=bsz, sigmaY=bsz)
 #     cv2.imshow('h', rmask*1.0/np.amax(rmask))
-#     cv2.waitKey(-1)
+#     cv2.waitKey(-1) 
+    return rmask 
+       
+    
+def inkeffect(oritext, nplaces=20, strength=0.1, onlyshrink=False):
+    rs = np.zeros_like(oritext)
+    (h,w) = oritext.shape[:2]
+    rmask = noiseMask(oritext, nplaces, relative_r=0.1, strength=(-0.1*h, +0.1*h))
     
     for x in range(0,w):
         for y in range(0,h):
@@ -131,17 +159,33 @@ def init():
     fg_main_cl = np.random.randint(2,150) + np.random.randn(3)*np.random.randint(2,10)
     fg_main_cl = np.clip(fg_main_cl, 0, 255).astype(int)
     # Create texts
+    
     textmask = np.zeros((64, 270), dtype=np.uint8)
     font = cv2.FONT_HERSHEY_SIMPLEX
     cv2.putText(textmask,'BEDOK MALL',(10,40), font, 1,255,2,cv2.LINE_AA)
-
-
-    textmask = si.matnet(textmask)
-    textmask = si.blur(textmask)
+    # Textmask
+#     if np.random.rand() < 0.3:
+#         textmask = si.matnet(textmask)
+#     if np.random.rand() < 0.3:
+#         textmask = si.blur(textmask)    
+    # Combine
     rs = si.combine(textmask, bg_main_cl, fg_main_cl)
-#     rs = si.lowresolution(rs)
-#     rs = si.jpegartifact(rs)
-    rs = si.distort(rs)
+    # Image
+#     if np.random.rand() < 0.3:
+#         rs = si.colorBlob(rs)
+#     if np.random.rand() < 0.3:
+#         rs = si.heterogeneous(rs)
+    if np.random.rand() < 0.99:
+        rs = si.distort(rs)
+#     if np.random.rand() < 0.3:
+#         rs = si.rotate(rs)
+    if np.random.rand() < 0.99:
+        rs = si.addnoise(rs)
+#     if np.random.rand() < 0.3:
+#         rs = si.jpegartifact(rs)
+#     if np.random.rand() < 0.3:
+#         rs = si.lowresolution(rs)
+
 
     cv2.imshow('ll',rs)
     cv2.waitKey(-1)

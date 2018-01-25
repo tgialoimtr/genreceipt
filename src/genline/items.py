@@ -63,7 +63,7 @@ class SepGen(object):
         if allowBlank:
             self.sepreg += r'?'
         if allowFar:
-            self.sepreg += r'[ ]{0,10}'
+            self.sepreg += r'([ ]?|[ ]{0,10})'
         else:
             self.sepreg += r'[ ]?'
         

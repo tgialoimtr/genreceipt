@@ -43,7 +43,6 @@ class ListGenWithProb(Gen):
                 g = items[i]
             p += probs[i]
             self.genlist.append((p, g))
-        print p
         assert p >= 1.0
         
     def gen(self):
@@ -64,9 +63,9 @@ class KeyValueCombiner(Gen):
         key: First Gen
         value: Second Gen
         '''
-        self.keygen = key
-        self.valgen = value
-        self.sepgen = sepgen
+        self.keygen = key if (not isinstance(key, str)) else RegExGen(key)
+        self.valgen = value if (not isinstance(value, str)) else RegExGen(value)
+        self.sepgen = sepgen if (not isinstance(sepgen, str)) else RegExGen(sepgen)
 
         
     def gen(self):
@@ -111,14 +110,28 @@ class PermutationCombiner(Gen):
                 break
         return rs
 
-
+class PairGen(Gen):
+    
+    def __init__(self, keygen, valgen, p_pair=0.5, p_key=0.15, p_val=0.25, sepchar=':', allowBlank=True, allowFar=True):
+        self.keygen = keygen
+        self.valgen = valgen
+        self.p_pair = p_pair
+        self.p_key = p_key
+        self.p_val = p_val
+        self.sepgen = SepGen(sepchar, allowBlank=allowBlank, allowFar=allowFar)
+        self.pairgen = KeyValueCombiner(self.keygen, self.valgen, self.sepgen)
+        self.gener = ListGenWithProb([self.keygen, self.valgen, self.pairgen], [p_key, p_val, p_pair])
+        
+    def gen(self):
+        return self.gener.gen()
+        
    
 if __name__ == '__main__':
     g1 = RegExGen(r'\d')
     g2 = RegExGen(r'\D')
     print isinstance(g1, Gen)
     
-    c = ListGenWithProb([g1, '=',  g2],[0.2,0.5,1.0])
+    c = PairGen(g1,g2,1.0,0.1,0.1,':',False)
     for i in range(20):
         print '----'+c.gen()+'------'
         
