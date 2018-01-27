@@ -50,7 +50,11 @@ class ListGenWithProb(Gen):
         for pval_ceil, gen in self.genlist:
             if pval_ceil > pval:
                 return gen.gen()
-    
+    def loitgfont(self):
+        pval = np.random.rand() #[0.0-1.0]
+        for pval_ceil, gen in self.genlist:
+            if pval_ceil > pval:
+                return gen
     
     
 class KeyValueCombiner(Gen):

@@ -66,7 +66,7 @@ class DateGen(Gen):
         '''
         Constructor
         '''
-        self.faker = Faker()
+        self.faker = Faker('en_US')
         self.dateformat = ListGenWithProb(["%Y/%m/%d","%Y-%m-%d","%d-%m-%[yY]([ ]\(%a\))?","%d/%m/%[yY]","(%a[ ])?%d %m %Y","%d %b %Y","%d %b' %y","%b %d, %Y","%d\.%m\.%[yY]"],
                                           [0.08      ,0.08      ,0.15                     ,0.3          , 0.15             , 0.05     ,0.04      ,0.05       ,0.1])
         
@@ -150,7 +150,7 @@ class ParragraphGen(Gen):
           
 if __name__ == '__main__':
 #     g = ParragraphGen('/home/loitg/workspace/genreceipt/resource/parragraph.txt')
-    g = CL0Gen()
+    g = DateGen()
     for i in range(200):
         print '----'+g.gen()+'------'
             

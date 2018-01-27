@@ -23,17 +23,19 @@ class ShootEffect(object):
         self.fold_warp =  0.2
         self.p_matnet = 0
         self.p_ = 0
-        self.distortor = Distort(0.8, 8,2, 4)
-        self.rotator = RotateRange(0.8, 5,5)
+        self.distortor = Distort(0.99,4,4, 1)
+        self.rotator = RotateRange(0.99, 2,2)
 
     # mask
     def matnet(self, mask):
-        holesmask = noiseMask(mask, nplaces=200, relative_r=0.05, strength=(0.2,0.7), bsz=1.0)
-        return mask*(1.0-holesmask)
+        nplaces = int(mask.shape[1] / mask.shape[0] * 40 * np.random.rand() ** 2)
+        holesmask = noiseMask(mask, nplaces=nplaces, relative_r=0.1, strength=(0.3,0.8), bsz=1.0)
+        return (mask*(1.0-holesmask)).astype(np.uint8)
 
     # color image
     def heterogeneous(self, line):
-        holesmask = noiseMask(line[:,:,0], nplaces=3, relative_r=0.5, strength=(0.05, 0.15), bsz=20)
+        nplaces = int(line.shape[1] / line.shape[0] * 5 * np.random.rand() ** 2)
+        holesmask = noiseMask(line[:,:,0], nplaces=nplaces, relative_r=0.5, strength=(0.05, 0.15), bsz=20)
         holesmask = 1.0-holesmask
         line = line*holesmask[:,:,np.newaxis]
         return line.astype(np.uint8)
@@ -46,11 +48,15 @@ class ShootEffect(object):
     
     # textmask
     def blur(self, mask):
-        bsz = 1.0 + 0.1*np.random.randn()
-        sz = (np.random.randn(2)*10).astype(int)
-        sz = 2*sz +1
-        mask = cv2.GaussianBlur(mask,tuple(sz),bsz)
-        return mask
+        (h,_) = mask.shape[:2]
+        ksz = h//4*2+1
+        bszx= 2*np.random.rand()
+        bszy= 2*np.random.rand()
+        if bszx + bszy > 2.0:
+            return mask
+        else:
+            mask = cv2.GaussianBlur(mask,(ksz,ksz),sigmaX=bszx, sigmaY=bszy)
+            return mask.astype(np.uint8)
     
     # color image
     def addnoise(self, line):
@@ -104,10 +110,61 @@ class ShootEffect(object):
         img = np.array(pilimg)
         return img
 
+    def effect(self, textmask):
+        # Select colors
+        bg_main_cl = np.random.randint(190,250) + np.random.randn(3)*np.random.randint(1,5)
+        bg_main_cl = np.clip(bg_main_cl, 0, 255).astype(int)
+        fg_main_cl = np.random.randint(2,150) + np.random.randn(3)*np.random.randint(2,10)
+        fg_main_cl = np.clip(fg_main_cl, 0, 255).astype(int)
+        # Textmask
+        if np.random.rand() < 0.3:
+            textmask = self.matnet(textmask)
+#         cv2.imshow('matnet', textmask)
+        if np.random.rand() < 0.3:
+            textmask = self.blur(textmask)
+#         cv2.imshow('blur', textmask)
+        
+#         print 'textmask', np.amin(textmask), np.amax(textmask)
+        # Combine
+        rs = self.combine(textmask, bg_main_cl, fg_main_cl)
+#         cv2.imshow('combine', rs)
+#         print 'combine', np.amin(rs), np.amax(rs)
+        # Image
+        if np.random.rand() < 0.1:
+            rs = self.colorBlob(rs)
+#         cv2.imshow('colorblob', rs)
+#         print 'colorblob', np.amin(rs), np.amax(rs)
+        if np.random.rand() < 0.2:
+            rs = self.heterogeneous(rs)
+#         cv2.imshow('hete', rs)
+#         print 'hete', np.amin(rs), np.amax(rs)
+        if np.random.rand() < 0.2:
+            rs = self.distort(rs)
+#         cv2.imshow('distort', rs)
+#         print 'distotrt', np.amin(rs), np.amax(rs)
+#         cv2.imwrite('/tmp/uiui123.tiff', rs)
+#         if np.random.rand() < 0.99:
+#             rs = self.rotate(rs)
+#         cv2.imshow('rotate', rs)
+#         print 'rotate', np.amin(rs), np.amax(rs)
+        if np.random.rand() < 0.99:
+            rs = self.addnoise(rs)
+#         cv2.imshow('noise', rs)
+#         print 'noise', np.amin(rs), np.amax(rs)
+        if np.random.rand() < 0.99:
+            rs = self.jpegartifact(rs)
+#         cv2.imshow('artifact', rs)
+#         print 'artifact', np.amin(rs), np.amax(rs)
+        if np.random.rand() < 0.99:
+            rs = self.lowresolution(rs)
+#         cv2.imshow('lowreslution', rs)
+#         print 'shooteffect', np.amin(rs), np.amax(rs)
+        return rs
 
 def noiseMask(oritext, nplaces=20, relative_r=0.1, strength=(0.0,1.0), bsz=4):   
     rmask = np.zeros_like(oritext, dtype=np.float)
     (h,w) = oritext.shape[:2]
+    ksz = h//4*2+1
     for i in range(nplaces):
         r = int(relative_r*h)
         if r < 1: continue
@@ -116,7 +173,7 @@ def noiseMask(oritext, nplaces=20, relative_r=0.1, strength=(0.0,1.0), bsz=4):
         y = np.random.randint(h)
         x = np.random.randint(w)
         cv2.circle(rmask,(x,y), r, inten, -1)
-    rmask = cv2.GaussianBlur(rmask,(31,31), sigmaX=bsz, sigmaY=bsz)
+    rmask = cv2.GaussianBlur(rmask,(ksz,ksz), sigmaX=bsz, sigmaY=bsz)
 #     cv2.imshow('h', rmask*1.0/np.amax(rmask))
 #     cv2.waitKey(-1) 
     return rmask 
@@ -154,20 +211,20 @@ def inkeffect(oritext, nplaces=20, strength=0.1, onlyshrink=False):
 def init():
     si = ShootEffect()
     # Select colors
-    bg_main_cl = np.random.randint(190,250) + np.random.randn(3)*np.random.randint(2,10)
+    bg_main_cl = np.random.randint(190,250) + np.random.randn(3)*np.random.randint(1,5)
     bg_main_cl = np.clip(bg_main_cl, 0, 255).astype(int)
     fg_main_cl = np.random.randint(2,150) + np.random.randn(3)*np.random.randint(2,10)
     fg_main_cl = np.clip(fg_main_cl, 0, 255).astype(int)
     # Create texts
     
-    textmask = np.zeros((64, 270), dtype=np.uint8)
-    font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(textmask,'BEDOK MALL',(10,40), font, 1,255,2,cv2.LINE_AA)
+    textmask = np.zeros((32, 270), dtype=np.uint8)
+    font = cv2.FONT_HERSHEY_PLAIN
+    cv2.putText(textmask,'Bedoc Mall 123         $  19.09',(5,20), font, 1.0,255,2,cv2.LINE_AA)
     # Textmask
-#     if np.random.rand() < 0.3:
-#         textmask = si.matnet(textmask)
-#     if np.random.rand() < 0.3:
-#         textmask = si.blur(textmask)    
+    if np.random.rand() < 0.99:
+        textmask = si.matnet(textmask)
+    if np.random.rand() < 0.99:
+        textmask = si.blur(textmask)    
     # Combine
     rs = si.combine(textmask, bg_main_cl, fg_main_cl)
     # Image

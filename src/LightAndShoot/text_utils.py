@@ -130,7 +130,7 @@ class RenderFont(object):
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
         y = 0
         bbs = []
-        
+
         for l in lines:
             bounds = font.get_rect(l)
             x = 0 # carriage-return
@@ -175,7 +175,7 @@ class RenderFont(object):
             rect_union[2:] += np.random.randint(2*pad, size=2)
         # crop the surface to fit the text:
         bbs = np.array(bbs)
-        surf_arr = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, [], pad=5)
+        surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
         surf_arr = surf_arr.swapaxes(0,1)
         #self.visualize_bb(surf_arr,bbs)
         return surf_arr, words, bbs

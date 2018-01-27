@@ -265,7 +265,16 @@ class CapitalandGen(Gen):
                                    [0.12         ,0.08            ,0.15      ,0.2          ,0.08          ,0.08             ,0.06        ,0.04         ,0.05        ,0.1             ,0.04         ])
 
     def gen(self):
-        return self.gener.gen()
+        txt = self.gener.gen()
+        l = len(txt)
+        if np.random.rand() < 0.03:
+            txt = ' ' + txt 
+        if np.random.rand() < 0.03:
+            txt = txt  + ' '
+        if np.random.rand() < 0.2 and l > 15:
+            startindex = np.random.randint(l-15 + 1)
+            txt = txt[startindex:(startindex+15)]
+        return txt
         
 if __name__ == '__main__':
     clgen = CapitalandGen()

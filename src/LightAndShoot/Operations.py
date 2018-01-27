@@ -13,6 +13,7 @@ import numpy as np
 import os
 import random
 import warnings
+import cv2
 
 class Operation(object):
     """
@@ -544,6 +545,16 @@ class Shear(Operation):
             print(width, height)
             return image.resize((width, height), resample=Image.BICUBIC)
         
+        
+# class LoiTGRotate(Operation): 
+#     def __init__(self, probability, angle_range=(-3,3)):
+#         Operation.__init__(self, probability)
+#     def perform_operation(self, image):
+#         x = image.size[0]
+#         y = image.size[1]
+#         image = image.rotate(rotation, expand=True, resample=Image.BICUBIC)
+    
+      
 class RotateRange(Operation):
     """
     This class is used to perform rotations on images by arbitrary numbers of
