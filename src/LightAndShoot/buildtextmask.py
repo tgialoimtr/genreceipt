@@ -19,7 +19,7 @@ from genline.receiptgenline import CapitalandGen
 from genline.combiner import ListGenWithProb
 
 
-DATA_PATH = '/home/loitg/Downloads/SynthText/data'
+DATA_PATH = '/home/loitg/workspace/genreceipt/resource/'
 FONT_PATH = '/home/loitg/Downloads/fonts/fontss/receipts/'
 fontlist = ['general_fairprice/PRINTF Regular.ttf', #chi so x0.85 (chux0.65-0.75)
              #'general_fairprice/Instruction.otf',
@@ -62,6 +62,31 @@ loitgfonts = [
     (0.08,'westgate/PetMe2Y.ttf',0.8,1.5),
     (0.08,'westgate/karmasut.ttf',0.6,0.8),
     ]
+
+def rotate_bound(image, angle):
+    # grab the dimensions of the image and then determine the
+    # center
+    (h, w) = image.shape[:2]
+    (cX, cY) = (w // 2, h // 2)
+ 
+    # grab the rotation matrix (applying the negative of the
+    # angle to rotate clockwise), then grab the sine and cosine
+    # (i.e., the rotation components of the matrix)
+    M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
+    cos = np.abs(M[0, 0])
+    sin = np.abs(M[0, 1])
+ 
+    # compute the new bounding dimensions of the image
+    nW = int((h * sin) + (w * cos))
+    nH = int((h * cos) + (w * sin))
+ 
+    # adjust the rotation matrix to take into account translation
+    M[0, 2] += (nW / 2) - cX
+    M[1, 2] += (nH / 2) - cY
+ 
+    # perform the actual rotation and return the image
+    return cv2.warpAffine(image, M, (nW, nH))
+
 class LoitgFont(object):
     
     def __init__(self, fontpath, p, widthrange, size=100):
@@ -121,41 +146,50 @@ class RenderText(object):
         below = rstr.rstr('ABC0123456789abcdef ', len(txt))
         multilines = above + '\n' + txt + '\n' + below
         if otherlines:
-            txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 10, 0.1, 1)
+            txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.3, 0.2, 1)
+            angle = np.random.rand() * 3 + 3
+            if np.random.rand() < 0.5: angle = -angle
+            txt_arr= rotate_bound(txt_arr,angle)
         else:
-            txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 10, 0.5, 1)
+            txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.05, 0.5, 1)
+            angle = np.random.randn() * 2
+            if np.random.rand() < 0.5 and abs(angle) > 1 and abs(angle) < 10:
+                txt_arr= rotate_bound(txt_arr,angle)
             
+        
         newwidth = int(txt_arr.shape[1]*loitgfont.getRatio())
         txt_arr = cv2.resize(txt_arr,(newwidth, txt_arr.shape[0]))
         return txt_arr
  
 if __name__ == '__main__':
-    p, path, r0, r1 = loitgfonts[6]
-    render = RenderText()
-    lf = LoitgFont(FONT_PATH+path, p, (r0, r1),size=40)
-    txt = ';:\'\",.<>/?'
-    txt='`~!@#$%^&*()-=_+'
-    txt='[]{}\|'
-    txt = [x for x in txt]
-    txt = '\n'.join(txt)
-    print txt
-    txt_arr, txt, bbs = render.renderfont.render_multiline(lf.font, txt , 10, 0.1, -1)
-    cv2.imshow('m', txt_arr)
-    cv2.waitKey(-1)
-    
-    exit(0)
+#     p, path, r0, r1 = loitgfonts[6]
+#     render = RenderText()
+#     lf = LoitgFont(FONT_PATH+path, p, (r0, r1),size=40)
+#     txt = ';:\'\",.<>/?'
+#     txt='`~!@#$%^&*()-=_+'
+#     txt='[]{}\|'
+#     txt = [x for x in txt]
+#     txt = '\n'.join(txt)
+#     print txt
+#     txt_arr, txt, bbs = render.renderfont.render_multiline(lf.font, txt , 10, 0.1, -1)
+#     cv2.imshow('m', txt_arr)
+#     cv2.waitKey(-1)
+#     
+#     exit(0)
     
     
     
     
     render = RenderText()
     clgen = CapitalandGen()
-    txt = 'Staff: Asther Canoy0103344' #clgen.gen()
+    
 #    fontpath = fontslist[int(np.random.randint(0, len(fontslist)))]
-    for _ in range(30):
+    for _ in range(300):
         loitgfont = render.genFont()
+        txt = clgen.gen()
         print loitgfont.fontpath
         m = render.toMask(loitgfont, txt=txt, otherlines = True)
+        if m is None: continue
         cv2.imshow('m', m)
         cv2.waitKey(-1)
         

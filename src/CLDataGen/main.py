@@ -50,15 +50,15 @@ if __name__ == '__main__':
     si = ShootEffect()
     render = RenderText()
     clgen = CapitalandGen()
-    root = '/home/loitg/Downloads/images2/'
+    root = '/home/loitg/Downloads/images_txt/'
     with open(root + 'anno-train.txt', 'w') as annotation_train:
         with open(root + 'anno-test.txt', 'w') as annotation_test:
-            for i in range(100):
+            for i in range(300000):
                 print i, '-----------------------'
                 rs, txt = createSample(clgen, render, si)
                 if rs is None: continue
                 cv2.imwrite(root + str(i) + '.jpg', rs)
-                if i < 70:
+                if i < 295000:
                     annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')
                 else:
                     annotation_test.write('./' + str(i) + '.jpg ' + txt + '\n')
