@@ -26,7 +26,7 @@ def createTextMask(clgen, render, si):
         otherlines = True
     else:
         otherlines = False
-    m = render.toMask(render.genFont(), txt=txt, otherlines = otherlines)
+    m, txt = render.toMask(render.genFont(), txt=txt, otherlines = otherlines)
 #     print 'ToMask', time() - tt
     return m, txt
 

@@ -117,6 +117,9 @@ class RenderText(object):
             return None
         if loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF' and any(c.isdigit() for c in txt):
             return None
+        if (loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/PRINTF Regular.ttf')\
+             or (loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/dotted/fake receipt.ttf'):
+            txt = txt.upper()
         above = rstr.rstr('ABC0123456789abcdef ', len(txt))
         below = rstr.rstr('ABC0123456789abcdef ', len(txt))
         multilines = above + '\n' + txt + '\n' + below
@@ -127,23 +130,23 @@ class RenderText(object):
             
         newwidth = int(txt_arr.shape[1]*loitgfont.getRatio())
         txt_arr = cv2.resize(txt_arr,(newwidth, txt_arr.shape[0]))
-        return txt_arr
+        return txt_arr, txt
  
 if __name__ == '__main__':
-    p, path, r0, r1 = loitgfonts[6]
-    render = RenderText()
-    lf = LoitgFont(FONT_PATH+path, p, (r0, r1),size=40)
-    txt = ';:\'\",.<>/?'
-    txt='`~!@#$%^&*()-=_+'
-    txt='[]{}\|'
-    txt = [x for x in txt]
-    txt = '\n'.join(txt)
-    print txt
-    txt_arr, txt, bbs = render.renderfont.render_multiline(lf.font, txt , 10, 0.1, -1)
-    cv2.imshow('m', txt_arr)
-    cv2.waitKey(-1)
-    
-    exit(0)
+#     p, path, r0, r1 = loitgfonts[6]
+#     render = RenderText()
+#     lf = LoitgFont(FONT_PATH+path, p, (r0, r1),size=40)
+#     txt = ';:\'\",.<>/?'
+#     txt='`~!@#$%^&*()-=_+'
+#     txt='[]{}\|'
+#     txt = [x for x in txt]
+#     txt = '\n'.join(txt)
+#     print txt
+#     txt_arr, txt, bbs = render.renderfont.render_multiline(lf.font, txt , 10, 0.1, -1)
+#     cv2.imshow('m', txt_arr)
+#     cv2.waitKey(-1)
+#     
+#     exit(0)
     
     
     
