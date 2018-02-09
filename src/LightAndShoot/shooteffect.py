@@ -23,18 +23,18 @@ class ShootEffect(object):
         self.fold_warp =  0.2
         self.p_matnet = 0
         self.p_ = 0
-        self.distortor = Distort(0.99,4,4, 1)
+        self.distortor = Distort(0.99,2,2, 4)
         self.rotator = RotateRange(0.99, 2,2)
 
     # mask
     def matnet(self, mask):
-        nplaces = int(mask.shape[1] / mask.shape[0] * 40 * np.random.rand() ** 2)
+        nplaces = int(mask.shape[1] / mask.shape[0] * 40 * (np.random.rand() +0.5) )
         holesmask = noiseMask(mask, nplaces=nplaces, relative_r=0.1, strength=(0.3,0.8), bsz=1.0)
         return (mask*(1.0-holesmask)).astype(np.uint8)
 
     # color image
     def heterogeneous(self, line):
-        nplaces = int(line.shape[1] / line.shape[0] * 5 * np.random.rand() ** 2)
+        nplaces = int(line.shape[1] / line.shape[0] * 5 * (np.random.rand()+0.5))
         holesmask = noiseMask(line[:,:,0], nplaces=nplaces, relative_r=0.5, strength=(0.05, 0.15), bsz=20)
         holesmask = 1.0-holesmask
         line = line*holesmask[:,:,np.newaxis]
@@ -114,13 +114,13 @@ class ShootEffect(object):
         # Select colors
         bg_main_cl = np.random.randint(190,250) + np.random.randn(3)*np.random.randint(1,5)
         bg_main_cl = np.clip(bg_main_cl, 0, 255).astype(int)
-        fg_main_cl = np.random.randint(2,150) + np.random.randn(3)*np.random.randint(2,10)
+        fg_main_cl = np.random.randint(40,140) + np.random.randn(3)*np.random.randint(2,10)
         fg_main_cl = np.clip(fg_main_cl, 0, 255).astype(int)
         # Textmask
-        if np.random.rand() < 0.3:
+        if np.random.rand() < 0.6:
             textmask = self.matnet(textmask)
 #         cv2.imshow('matnet', textmask)
-        if np.random.rand() < 0.3:
+        if np.random.rand() < 0.5:
             textmask = self.blur(textmask)
 #         cv2.imshow('blur', textmask)
         
@@ -134,11 +134,11 @@ class ShootEffect(object):
             rs = self.colorBlob(rs)
 #         cv2.imshow('colorblob', rs)
 #         print 'colorblob', np.amin(rs), np.amax(rs)
-        if np.random.rand() < 0.2:
+        if np.random.rand() < 0.3:
             rs = self.heterogeneous(rs)
 #         cv2.imshow('hete', rs)
 #         print 'hete', np.amin(rs), np.amax(rs)
-        if np.random.rand() < 0.2:
+        if np.random.rand() < 0.4:
             rs = self.distort(rs)
 #         cv2.imshow('distort', rs)
 #         print 'distotrt', np.amin(rs), np.amax(rs)

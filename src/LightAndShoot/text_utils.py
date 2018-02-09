@@ -102,15 +102,15 @@ class RenderFont(object):
         self.baselinestate = BaselineState()
 
         # text-source : gets english text:
-        self.text_source = TextSource(min_nchar=self.min_nchar,
-                                      fn=osp.join(data_dir,'newsgroup/newsgroup.txt'))
+        #self.text_source = TextSource(min_nchar=self.min_nchar,
+        #                              fn=osp.join(data_dir,'newsgroup/newsgroup.txt'))
 
         # get font-state object:
-        self.font_state = FontState(data_dir)
+        #self.font_state = FontState(data_dir)
 
         pygame.init()
 
-    def render_multiline(self,font,text, pad=5, rel_line_spacing=0.2, keeponly=-1):
+    def render_multiline(self,font,text, rel_pad=0.2, rel_line_spacing=0.2, keeponly=-1):
         """
         renders multiline TEXT on the pygame surface SURF with the
         font style FONT.
@@ -125,7 +125,7 @@ class RenderFont(object):
         # initialize the surface to proper size:
         line_bounds = font.get_rect(lines[np.argmax(lengths)])
 #         print 'line', line_bounds
-        
+        pad = int(line_bounds.height*rel_pad)
         fsize = (round(2.0*line_bounds.width) + 2*pad, round(1.25*line_bounds.height*len(lines)) + 2*pad)
         surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
         y = 0
@@ -175,7 +175,7 @@ class RenderFont(object):
             rect_union[2:] += np.random.randint(2*pad, size=2)
         # crop the surface to fit the text:
         bbs = np.array(bbs)
-        surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
+        surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=1)
         surf_arr = surf_arr.swapaxes(0,1)
         #self.visualize_bb(surf_arr,bbs)
         return surf_arr, words, bbs
