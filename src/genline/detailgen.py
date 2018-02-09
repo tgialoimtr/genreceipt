@@ -71,7 +71,7 @@ class DateGen(Gen):
                                           [0.08      ,0.08      ,0.15                     ,0.3          , 0.15             , 0.05     ,0.04      ,0.05       ,0.1])
         
     def gen(self):
-        d = self.faker.future_date(end_date="+350d")
+        d = self.faker.date_between(start_date="-365d", end_date="-60d")
         fm = self.dateformat.gen()
         d = d.strftime(fm)
         d = replaceZeroWithProb(d, 0.15)

@@ -105,7 +105,7 @@ class CapitalandGen(Gen):
         rmoney0 = r'\$?[1-9]?\d\.\d0'
         rmoney1 = r'\$?[1-9]\d\d?\.\d\d' #, 'SGD'
         moneyval = ListGenWithProb([rmoney0, rmoney1], [0.6,0.4])
-        self.moneyval = ComplexGen(['$[ ]?', moneyval, '[ ]?SGD'],[0.5,1.0,0.1])
+        self.moneyval = ComplexGen(['($|S|SGD)[ ]?', moneyval, '[ ]?SGD'],[0.5,1.0,0.1])
         self.rid0 = r'[A-Z]{0,3}0?0?0?\d{2,8}'
         self.rid1 = r'\d{2,12}'
         self.rid2 = r'\d{2,5}[- ]\d{2,5}[- ]\d{2,5}'
@@ -261,8 +261,8 @@ class CapitalandGen(Gen):
         self.dateidgen2 = PermutationCombiner(list_dateid, RegExGen('[ ]{1,3}'), 2) #10%
         self.special #4%
         
-        self.gener = ListGenWithProb([self.locgen13, self.gsttelcomp,self.store,self.datetime,self.totalpair, self.nottotalkey, self.idpair, self.notpair, self.others, self.dateidgen2, self.special],
-                                   [0.12         ,0.08            ,0.15      ,0.2          ,0.08          ,0.08             ,0.06        ,0.04         ,0.05        ,0.1             ,0.04         ])
+        self.gener = ListGenWithProb([self.locgen13, self.gsttelcomp,self.store,self.datetime,self.totalpair, self.nottotalkey, self.idpair, self.notpair, self.others, self.dateidgen2, self.special],\
+                             [0.03         ,0.03            ,0.03     ,0.36          ,0.15          ,0.15             ,0.06        ,0.02         ,0.05        ,0.1             ,0.02         ])
 
     def gen(self):
         txt = self.gener.gen()
