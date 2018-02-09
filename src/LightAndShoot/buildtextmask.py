@@ -156,6 +156,7 @@ if __name__ == '__main__':
         loitgfont = render.genFont()
         print loitgfont.fontpath
         m = render.toMask(loitgfont, txt=txt, otherlines = True)
+        if m is None: continue
         cv2.imshow('m', m)
         cv2.waitKey(-1)
         
