@@ -57,7 +57,9 @@ if __name__ == '__main__':
                 print i, '-----------------------'
                 rs, txt = createSample(clgen, render, si)
                 if rs is None: continue
+                txt = txt.strip()
                 cv2.imwrite(root + str(i) + '.jpg', rs)
+#                 print '@@@'+txt+'@@@'
 #                 cv2.imshow('hihi', rs)
 #                 cv2.waitKey(-1)
                 

@@ -151,12 +151,12 @@ class RenderText(object):
         below = rstr.rstr('ABC0123456789abcdef ', len(txt))
         multilines = above + '\n' + txt + '\n' + below
         if otherlines:
-            txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.3, 0.2, 1)
+            txt_arr, _, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.3, 0.2, 1)
 #             angle = np.random.rand() * 3 + 3
 #             if np.random.rand() < 0.5: angle = -angle
 #             txt_arr= rotate_bound(txt_arr,angle)
         else:
-            txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.05, 0.5, 1)
+            txt_arr, _, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.05, 0.5, 1)
 #             angle = np.random.randn() * 2
 #             if np.random.rand() < 0.5 and abs(angle) > 1 and abs(angle) < 10:
 #                 txt_arr= rotate_bound(txt_arr,angle)
