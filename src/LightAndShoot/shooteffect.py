@@ -110,6 +110,21 @@ class ShootEffect(object):
         img = np.array(pilimg)
         return img
 
+    # image
+    def addMep(self, img):
+        bg_cl = np.random.randint(40,140) + np.random.randn(3)*np.random.randint(2,10)
+        bg_cl = np.clip(bg_cl, 0, 255).astype(int)
+        pad = np.random.randint(img.shape[0]/4+1, img.shape[0]+1)
+        newimg = np.zeros((img.shape[0],img.shape[1]+pad,3), np.uint8)
+        if np.random.rand() < 0.5:
+            newimg[:,:pad] = bg_cl
+            newimg[:,pad:] = img
+        else:
+            newimg[:,-pad:] = bg_cl
+            newimg[:,:-pad] = img
+        return newimg
+    
+    
     def effect(self, textmask):
         # Select colors
         bg_main_cl = np.random.randint(190,250) + np.random.randn(3)*np.random.randint(1,5)
@@ -123,7 +138,6 @@ class ShootEffect(object):
         if np.random.rand() < 0.5:
             textmask = self.blur(textmask)
 #         cv2.imshow('blur', textmask)
-        
 #         print 'textmask', np.amin(textmask), np.amax(textmask)
         # Combine
         rs = self.combine(textmask, bg_main_cl, fg_main_cl)
@@ -147,6 +161,8 @@ class ShootEffect(object):
 #             rs = self.rotate(rs)
 #         cv2.imshow('rotate', rs)
 #         print 'rotate', np.amin(rs), np.amax(rs)
+        if np.random.rand() < 0.15:
+            rs = self.addMep(rs)
         if np.random.rand() < 0.99:
             rs = self.addnoise(rs)
 #         cv2.imshow('noise', rs)

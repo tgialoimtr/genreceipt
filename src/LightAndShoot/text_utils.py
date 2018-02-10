@@ -135,6 +135,8 @@ class RenderFont(object):
             bounds = font.get_rect(l)
             x = 0 # carriage-return
             y += bounds.top + round(rel_line_spacing*line_bounds.height)# line-feed
+            if np.random.rand() < 0.3 and ('.' in l):
+                l = l.replace('.', '. ')
             bounds = font.render_to(surf, (x,y), l)
             bounds.x = x + bounds.x
             temp = y - bounds.y
@@ -175,7 +177,7 @@ class RenderFont(object):
             rect_union[2:] += np.random.randint(2*pad, size=2)
         # crop the surface to fit the text:
         bbs = np.array(bbs)
-        surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=1)
+        surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
         surf_arr = surf_arr.swapaxes(0,1)
         #self.visualize_bb(surf_arr,bbs)
         return surf_arr, words, bbs

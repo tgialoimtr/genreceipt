@@ -84,8 +84,8 @@ TOTAL_KEYS = [
     'Total',
     'INVOICE TOTAL', 
     'PURCHASE AMOUNT',
-    'amount paid',
-    'amount',
+    'Amount paid',
+    'Amount',
     'TOTAL S$',
     'Net Total',
     'Total Payable',
@@ -93,8 +93,8 @@ TOTAL_KEYS = [
     'NET SALES',
     'Total Due',
     'Total (SGD)',
-    'cash',
-    'nets'
+    'Cash',
+    'Nets'
     ]
 
 class CapitalandGen(Gen):
@@ -104,8 +104,8 @@ class CapitalandGen(Gen):
         self.rgst = r'(M(\d|R)|19|20)-?\d{7}-?[A-Z0-9]'
         rmoney0 = r'\$?[1-9]?\d\.\d0'
         rmoney1 = r'\$?[1-9]\d\d?\.\d\d' #, 'SGD'
-        moneyval = ListGenWithProb([rmoney0, rmoney1], [0.6,0.4])
-        self.moneyval = ComplexGen(['($|S|SGD)[ ]?', moneyval, '[ ]?SGD'],[0.5,1.0,0.1])
+        moneyval = ListGenWithProb([rmoney0, rmoney1], [0.3,0.7])
+        self.moneyval = ComplexGen([ListGenWithProb(['','$','$ ','S$[ ]?','SGD'],[0.3,0.4,0.2,0.05,0.05]), moneyval, '[ ]?SGD'],[0.5,1.0,0.1])
         self.rid0 = r'[A-Z]{0,3}0?0?0?\d{2,8}'
         self.rid1 = r'\d{2,12}'
         self.rid2 = r'\d{2,5}[- ]\d{2,5}[- ]\d{2,5}'
@@ -166,18 +166,18 @@ class CapitalandGen(Gen):
         moneykey = StringListGen(['total savings','subtotal', 'sub total', 'subttl', 'card disc', 'total disc', 'rounding', 'mst/visa', 'change',
                               'change due', 'visa', 'credit card visa', 'master', 'visa/master xxxx', 'Service Tax (10%)', '10% Svr Chrg',
                               '10% SVC CHG', '10% Service Charge', 'Service Charge 10.00%','Service Chg(10%)', 'Service Charge', 'SvCharge',
-                              'Payable', 'Tender VISA', 'Avg. Pax', 'Rounding Adj.'])
+                              'Payable', 'Tender VISA', 'Avg. Pax', 'Rounding Adj.', 'GST 7%', '7% GST', 'GST 7.00%', 'GST ( 7% )', 'GST CHARGES 7%', '7% GST Inclusive'])
         self.moneykey = ChangeCaseGen(moneykey, 0.5, 0.0)
-        self.moneypair = PairGen(self.moneykey, self.moneyval, 0.4, 0.3, 0.3, ':', True, True)
+        self.moneypair = PairGen(self.moneykey, self.moneyval, 0.2, 0.4, 0.4, ':', True, True)
         
     
     def createTotalPair(self):
         self.totalkey = ChangeCaseGen(StringListGen(TOTAL_KEYS), 0.5, 0.0)
-        self.totalpair = PairGen(self.totalkey, self.moneyval, 0.4, 0.3, 0.3, ':', True, True)
+        self.totalpair = PairGen(self.totalkey, self.moneyval, 0.2, 0.2, 0.6, ':', True, True)
         ####
         self.nottotalkey = ChangeCaseGen(StringListGen(['total qty', 'qty', 'Total number of items', 'total pts', 'no of items',
                                                     'total items', 'total qty sold', 'pts added', 'updated pts']), 0.5, 0.0)
-        self.nottotalpair = PairGen(self.nottotalkey, self.number, 0.4, 0.3, 0.3, ':', True, True)
+        self.nottotalpair = PairGen(self.nottotalkey, self.number, 0.8, 0.1, 0.1, ':', True, True)
         
     def createNotPair(self):
         notpair = ParragraphGen('/home/loitg/workspace/genreceipt/resource/parragraph.txt')
@@ -225,6 +225,7 @@ class CapitalandGen(Gen):
 
     def createDateTime(self):
         dat = ComplexGen([KeyValueCombiner('D(ate|ATE)', SepGen(':', allowBlank=True, allowFar=True), ''), DateGen(), ' ', TimeGen()], [0.4, 1.0, 1.0, 0.4])
+        dat = ComplexGen(['------',dat,'------'],[1.0,1.0,1.0])
         dat_giotruoc = ComplexGen([KeyValueCombiner('D(ate|ATE)', SepGen(':', allowBlank=True, allowFar=True),''), TimeGen(), ' ', DateGen()], [0.4, 0.4, 1.0, 1.0])
         tim = ComplexGen([KeyValueCombiner('T(ime|IME)', SepGen(':', allowBlank=True, allowFar=True),''), TimeGen()], [0.7, 1.0])
         self.datetime = ListGenWithProb([dat, dat_giotruoc, tim], [0.5, 0.2, 0.3])
@@ -239,38 +240,39 @@ class CapitalandGen(Gen):
     
     def createGen(self):
         list_loc = [self.addr, self.block, self.mall, self. zipcode]
-        self.locgen13 = PermutationCombiner(list_loc, SepGen(',', allowBlank=True, allowFar=False), 1, 3) #12%
+        self.locgen13 = PermutationCombiner(list_loc, SepGen(',', allowBlank=True, allowFar=False), 1, 3) #3%
         
         list_lockeyval = [self.gstpair, self.telfaxpair, self.companyval]
         self.locpairgen2 = PermutationCombiner(list_lockeyval, SepGen(',', allowBlank=True, allowFar=False), 2)
         self.gsttelcomp = ListGenWithProb([self.locpairgen2, self.gstpair, self.telfaxpair, self.companypair],
-                                     [0.4        ,0.4          ,0.1             ,0.1              ]) #8%
+                                     [0.4        ,0.4          ,0.1             ,0.1              ]) #3%
         
-        self.store #15%
+        self.store #3%
         
-        self.datetime #20%
+        self.datetime #31%
         
-        self.totalpair #5%
-        self.nottotalpair #5%
-        self.idpair #12%
-        self.notpair #4%
+        self.totalpair #20%
+        self.nottotalpair #15%
+        self.idpair #6%
+        self.notpair #2%
         self.others = ListGenWithProb([self.tablepair, self.namepair, self.otherpair, self.moneypair],
-                                                                  [0.25, 0.25, 0.25, 0.25]) #5%
+                                                                  [0.1, 0.1, 0.1, 0.7]) #5%
         
         list_dateid = [self.datetime, self.idpair, self.others]
         self.dateidgen2 = PermutationCombiner(list_dateid, RegExGen('[ ]{1,3}'), 2) #10%
-        self.special #4%
+        self.special #2%
         
-        self.gener = ListGenWithProb([self.locgen13, self.gsttelcomp,self.store,self.datetime,self.totalpair, self.nottotalkey, self.idpair, self.notpair, self.others, self.dateidgen2, self.special],\
-                             [0.03         ,0.03            ,0.03     ,0.36          ,0.15          ,0.15             ,0.06        ,0.02         ,0.05        ,0.1             ,0.02         ])
+        self.gener = ListGenWithProb([self.locgen13, self.gsttelcomp,self.store,self.datetime,self.totalpair, self.nottotalpair, self.idpair, self.notpair, self.others, self.dateidgen2, self.special],\
+                                    [0.03         ,0.03            ,0.03     ,0.31          ,0.20          ,0.15             ,0.06        ,0.02         ,0.05        ,0.1             ,0.02         ])
 
     def gen(self):
         txt = self.gener.gen()
         l = len(txt)
-        if np.random.rand() < 0.03:
-            txt = ' ' + txt 
-        if np.random.rand() < 0.03:
-            txt = txt  + ' '
+        numspaces = np.random.randint(1,5)
+        if np.random.rand() < 0.12:
+            txt = ' '*numspaces + txt 
+        if np.random.rand() < 0.12:
+            txt = txt  + ' '*numspaces
         if np.random.rand() < 0.2 and l > 15:
             startindex = np.random.randint(l-15 + 1)
             txt = txt[startindex:(startindex+15)]

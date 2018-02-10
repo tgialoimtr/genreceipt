@@ -5,6 +5,7 @@ Created on Jan 24, 2018
 '''
 import os, sys
 from numpy import average
+from genline import receiptgenline
 # Config PYTHONPATH and template folder relatively according to current file location
 project_dir = os.path.dirname(__file__) + '/../'
 sys.path.insert(0, project_dir)
@@ -17,6 +18,7 @@ from text_utils import RenderFont
 import rstr
 from genline.receiptgenline import CapitalandGen
 from genline.combiner import ListGenWithProb
+import re
 
 
 DATA_PATH = '/home/loitg/workspace/genreceipt/resource/'
@@ -52,15 +54,15 @@ fontlist = ['general_fairprice/PRINTF Regular.ttf', #chi so x0.85 (chux0.65-0.75
 #             'westgate/SYDTWO_2.ttf',
              ]
 loitgfonts = [
-    (0.08,'general_fairprice/PRINTF Regular.ttf', 0.6,0.9),
+    (0.10,'general_fairprice/PRINTF Regular.ttf', 0.6,0.9),
     (0.08,'general_fairprice/LEFFC2.TTF', 0.8, 1.5),
-    (0.37,'general_fairprice/Merchant Copy.ttf', 0.7, 1.0),
+    (0.30,'general_fairprice/Merchant Copy.ttf', 0.7, 1.0),
     (0.08,'general_fairprice/Merchant Copy.ttf', 1.0, 1.2),
-    (0.08,'dotted/fake receipt.ttf', 0.45, 0.85),
+    (0.10,'dotted/fake receipt.ttf', 0.45, 0.85),
     (0.08,'dotted/jd_lcd_rounded.ttf',0.65, 0.95),
     (0.08,'westgate/PKMN-Mystery-Dungeon.ttf',0.7,1.3),
     (0.08,'westgate/PetMe2Y.ttf',0.8,1.5),
-    (0.08,'westgate/karmasut.ttf',0.6,0.8),
+    (0.11,'westgate/karmasut.ttf',0.6,0.8),
     ]
 
 def rotate_bound(image, angle):
@@ -138,10 +140,10 @@ class RenderText(object):
         return self.fontgen.loitgfont()
     
     def toMask(self, loitgfont, txt, otherlines=False):
-        if loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/westgate/PKMN-Mystery-Dungeon.ttf' and any(c in txt for c in ['<','>',';','!','$','#','&','/','`','~','@','%','^','*']):
-            return None
+        if loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/westgate/PKMN-Mystery-Dungeon.ttf' and any(c in txt for c in ['<','>',';','!','$','#','&','/','`','~','@','%','^','*','.']):
+            return None, None
         if loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/LEFFC2.TTF' and any(c.isdigit() for c in txt):
-            return None
+            return None, None
         if (loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/general_fairprice/PRINTF Regular.ttf')\
              or (loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/dotted/fake receipt.ttf'):
             txt = txt.upper()
@@ -150,17 +152,27 @@ class RenderText(object):
         multilines = above + '\n' + txt + '\n' + below
         if otherlines:
             txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.3, 0.2, 1)
-            angle = np.random.rand() * 3 + 3
-            if np.random.rand() < 0.5: angle = -angle
-            txt_arr= rotate_bound(txt_arr,angle)
+#             angle = np.random.rand() * 3 + 3
+#             if np.random.rand() < 0.5: angle = -angle
+#             txt_arr= rotate_bound(txt_arr,angle)
         else:
             txt_arr, txt, bbs = self.renderfont.render_multiline(loitgfont.font, multilines , 0.05, 0.5, 1)
-            angle = np.random.randn() * 2
-            if np.random.rand() < 0.5 and abs(angle) > 1 and abs(angle) < 10:
-                txt_arr= rotate_bound(txt_arr,angle)
-            
+#             angle = np.random.randn() * 2
+#             if np.random.rand() < 0.5 and abs(angle) > 1 and abs(angle) < 10:
+#                 txt_arr= rotate_bound(txt_arr,angle)
+
+        angle = np.random.randn() * 3
+        if np.random.rand() < 0.4:
+            txt_arr= rotate_bound(txt_arr,angle)            
         
         newwidth = int(txt_arr.shape[1]*loitgfont.getRatio())
+        if np.random.rand() < 0.4:
+            found = re.search( r'\d\.\d\d', txt)
+            if found:
+                newwidth *= 2
+            elif any(c in txt for c in receiptgenline.TOTAL_KEYS) or \
+                any(c.upper() in txt for c in receiptgenline.TOTAL_KEYS):
+                newwidth *= 2
         txt_arr = cv2.resize(txt_arr,(newwidth, txt_arr.shape[0]))
         return txt_arr, txt
  

@@ -58,6 +58,9 @@ if __name__ == '__main__':
                 rs, txt = createSample(clgen, render, si)
                 if rs is None: continue
                 cv2.imwrite(root + str(i) + '.jpg', rs)
+#                 cv2.imshow('hihi', rs)
+#                 cv2.waitKey(-1)
+                
                 if i < 295000:
                     annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')
                 else:
