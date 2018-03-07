@@ -8,7 +8,7 @@ import numpy as np
 import rstr
 import cv2
 from genline.receiptgenline import CapitalandGen
-from LightAndShoot.buildtextmask import RenderText
+from TextRender.buildtextmask import RenderText
 from LightAndShoot.shooteffect import ShootEffect
 from time import time
 
