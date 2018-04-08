@@ -3,10 +3,11 @@ Created on Jan 18, 2018
 
 @author: loitg
 '''
-from items import *
-from combiner import *
-from detailgen import *
+from genline.items import *
+from genline.combiner import *
+from genline.detailgen import *
 import copy
+from utils.params import clconfig
 
 #Bo sung malls, streets
 #Ngay thang nam
@@ -224,9 +225,9 @@ class CapitalandGen(Gen):
         return self.addr
 
     def createDateTime(self):
-        dat = ComplexGen([KeyValueCombiner('D(ate|ATE)', SepGen(':', allowBlank=True, allowFar=True), ''), DateGen(), ' ', TimeGen()], [0.4, 1.0, 1.0, 0.4])
+        dat = ComplexGen([KeyValueCombiner('D(ate|ATE)', SepGen(':', allowBlank=True, allowFar=True), ''), DateGen(todate='2018-12-31', dateformat=clconfig.date), ' ', TimeGen()], [0.4, 1.0, 1.0, 0.4])
         dat = ComplexGen(['------',dat,'------'],[1.0,1.0,1.0])
-        dat_giotruoc = ComplexGen([KeyValueCombiner('D(ate|ATE)', SepGen(':', allowBlank=True, allowFar=True),''), TimeGen(), ' ', DateGen()], [0.4, 0.4, 1.0, 1.0])
+        dat_giotruoc = ComplexGen([KeyValueCombiner('D(ate|ATE)', SepGen(':', allowBlank=True, allowFar=True),''), TimeGen(), ' ', DateGen(todate='2018-12-31', dateformat=clconfig.date)], [0.4, 0.4, 1.0, 1.0])
         tim = ComplexGen([KeyValueCombiner('T(ime|IME)', SepGen(':', allowBlank=True, allowFar=True),''), TimeGen()], [0.7, 1.0])
         self.datetime = ListGenWithProb([dat, dat_giotruoc, tim], [0.5, 0.2, 0.3])
         return self.datetime
@@ -281,7 +282,7 @@ class CapitalandGen(Gen):
 if __name__ == '__main__':
     clgen = CapitalandGen()
     for i in range(200):
-        print '---' + clgen.gen() + '---'
+        print '---' + clgen.datetime.gen() + '---'
 
 
 

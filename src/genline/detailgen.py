@@ -10,6 +10,7 @@ import re
 import random
 from genline.combiner import ListGenWithProb
 import rstr
+from datetime import datetime
 
 
 def replaceZeroWithProb(oridatetime, replaceProb=0.5):
@@ -62,16 +63,24 @@ class DateGen(Gen):
     '''
     Date
     '''
-    def __init__(self):
+    def __init__(self, fromdate = None, todate = None, dateformat = None):
         '''
         Constructor
         '''
         self.faker = Faker('en_US')
-        self.dateformat = ListGenWithProb(["%Y/%m/%d","%Y-%m-%d","%d-%m-%[yY]([ ]\(%a\))?","%d/%m/%[yY]","(%a[ ])?%d %m %Y","%d %b %Y","%d %b' %y","%b %d, %Y","%d\.%m\.%[yY]"],
-                                          [0.08      ,0.08      ,0.15                     ,0.3          , 0.15             , 0.05     ,0.04      ,0.05       ,0.1])
+        self.dateformat = ListGenWithProb(*dateformat)
+        if fromdate is not None:
+            self.fromdate = datetime.strptime(fromdate, "%Y-%m-%d")
+        else:
+            self.fromdate = datetime.now()
+        if todate is not None:
+            self.todate = datetime.strptime(todate, "%Y-%m-%d")
+        else:
+            self.todate = datetime.now()
         
     def gen(self):
-        d = self.faker.date_between(start_date="-365d", end_date="-60d")
+#         d = self.faker.date_between(start_date="-365d", end_date="-60d")
+        d = self.faker.date_time_between_dates(datetime_start=self.fromdate, datetime_end=self.todate, tzinfo=None).date()
         fm = self.dateformat.gen()
         d = d.strftime(fm)
         d = replaceZeroWithProb(d, 0.15)
@@ -150,7 +159,7 @@ class ParragraphGen(Gen):
           
 if __name__ == '__main__':
 #     g = ParragraphGen('/home/loitg/workspace/genreceipt/resource/parragraph.txt')
-    g = DateGen()
+    g = DateGen(fromdate='2018-01-01', dateformat=(["%d-%m-%Y"], [1.1]))
     for i in range(200):
         print '----'+g.gen()+'------'
             

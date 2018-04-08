@@ -7,8 +7,8 @@ Created on Jan 24, 2018
 import numpy as np
 import rstr
 import cv2
-from genline.receiptgenline import CapitalandGen
-from TextRender.buildtextmask import RenderText
+from CLDataGen.receiptgenline import CapitalandGen
+from TextRender.buildtextmask import RenderText, loitgfonts_receiptCL
 from LightAndShoot.shooteffect import ShootEffect
 from time import time
 
@@ -48,7 +48,7 @@ def createSample(clgen, render, si):
     
 if __name__ == '__main__':
     si = ShootEffect()
-    render = RenderText()
+    render = RenderText(loitgfonts_receiptCL)
     clgen = CapitalandGen()
     root = '/home/loitg/Downloads/images_txt/'
     with open(root + 'anno-train.txt', 'w') as annotation_train:
@@ -59,14 +59,14 @@ if __name__ == '__main__':
                 if rs is None: continue
                 txt = txt.strip()
                 cv2.imwrite(root + str(i) + '.jpg', rs)
-#                 print '@@@'+txt+'@@@'
-#                 cv2.imshow('hihi', rs)
-#                 cv2.waitKey(-1)
+                print '@@@'+txt+'@@@'
+                cv2.imshow('hihi', rs)
+                cv2.waitKey(-1)
                 
-                if i < 295000:
-                    annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')
-                else:
-                    annotation_test.write('./' + str(i) + '.jpg ' + txt + '\n')
+#                 if i < 295000:
+#                     annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')
+#                 else:
+#                     annotation_test.write('./' + str(i) + '.jpg ' + txt + '\n')
         
         
 

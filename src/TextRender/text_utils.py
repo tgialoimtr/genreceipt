@@ -13,7 +13,7 @@ from pygame import freetype
 #import Image
 from PIL import Image
 import math
-from common import *
+from utils.common import *
 
 
 def sample_weighted(p_dict):

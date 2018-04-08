@@ -5,7 +5,7 @@ Created on Jan 24, 2018
 '''
 import os, sys
 from numpy import average
-from genline import receiptgenline
+from CLDataGen import receiptgenline
 # Config PYTHONPATH and template folder relatively according to current file location
 project_dir = os.path.dirname(__file__) + '/../'
 sys.path.insert(0, project_dir)
@@ -16,13 +16,13 @@ import pygame
 from pygame import freetype
 from text_utils import RenderFont
 import rstr
-from genline.receiptgenline import CapitalandGen
+from CLDataGen.receiptgenline import CapitalandGen
 from genline.combiner import ListGenWithProb
 import re
 
 
 DATA_PATH = '/home/loitg/workspace/genreceipt/resource/'
-FONT_PATH = '/home/loitg/Downloads/fonts/fontss/receipts/'
+FONT_PATH = '/home/loitg/Downloads/fonts/fontss/'
 fontlist = ['general_fairprice/PRINTF Regular.ttf', #chi so x0.85 (chux0.65-0.75)
              #'general_fairprice/Instruction.otf',
              #'general_fairprice/Instruction Bold.otf',
@@ -53,17 +53,6 @@ fontlist = ['general_fairprice/PRINTF Regular.ttf', #chi so x0.85 (chux0.65-0.75
             'westgate/karmasut.ttf', # dung duoc (x0.75)
 #             'westgate/SYDTWO_2.ttf',
              ]
-loitgfonts = [
-    (0.10,'general_fairprice/PRINTF Regular.ttf', 0.6,0.9),
-    (0.08,'general_fairprice/LEFFC2.TTF', 0.8, 1.5),
-    (0.30,'general_fairprice/Merchant Copy.ttf', 0.7, 1.0),
-    (0.08,'general_fairprice/Merchant Copy.ttf', 1.0, 1.2),
-    (0.10,'dotted/fake receipt.ttf', 0.45, 0.85),
-    (0.08,'dotted/jd_lcd_rounded.ttf',0.65, 0.95),
-    (0.08,'westgate/PKMN-Mystery-Dungeon.ttf',0.7,1.3),
-    (0.08,'westgate/PetMe2Y.ttf',0.8,1.5),
-    (0.11,'westgate/karmasut.ttf',0.6,0.8),
-    ]
 
 def rotate_bound(image, angle):
     # grab the dimensions of the image and then determine the
@@ -111,7 +100,7 @@ class LoitgFont(object):
     
     
 class RenderText(object):
-    def __init__(self):
+    def __init__(self, loitgfonts):
         pygame.init()
         self.renderfont = RenderFont(DATA_PATH)
         self.height = 100
