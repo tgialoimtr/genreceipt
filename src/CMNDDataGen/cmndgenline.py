@@ -20,8 +20,11 @@ class CMND9Gen(Gen):
     def createIDNumber(self):
         self.idnumber = RegExGen(r'[0-3]\d{8}')
         return self.idnumber
-    
+
 if __name__ == '__main__':
     c9gen = CMND9Gen()
     for i in range(200):
         print '---' + c9gen.dob.gen() + '---'
+        
+        
+    
