@@ -18,7 +18,7 @@ from text_utils import RenderFont
 import rstr
 from CLDataGen.receiptgenline import CapitalandGen
 from genline.combiner import ListGenWithProb
-import re
+import re, random
 
 
 DATA_PATH = '/home/loitg/workspace/genreceipt/resource/'
@@ -78,6 +78,25 @@ def rotate_bound(image, angle):
     # perform the actual rotation and return the image
     return cv2.warpAffine(image, M, (nW, nH))
 
+class AFont(object):
+    
+    def __init__(self, fontpath, p, w2h, s2h, size=100):
+        self.prob = p
+        self.fontpath = fontpath
+        self.font = freetype.Font(fontpath, size=size)
+        self.w2h = w2h # tuple (rangemin, rangemax)
+        self.s2h = s2h # tuple (rangemin, rangemax)
+        self.font.underline = False
+        self.font.strong = False
+        self.font.oblique = False
+        self.font.strength = False
+        self.font.antialiased = True
+        self.font.origin = True
+    
+    def getFont(self):
+        return self.font    
+    
+
 class LoitgFont(object):
     
     def __init__(self, fontpath, p, widthrange, size=100):
@@ -100,7 +119,7 @@ class LoitgFont(object):
     
     
 class RenderText(object):
-    def __init__(self, loitgfonts):
+    def __init__(self, afonts):
         pygame.init()
         self.renderfont = RenderFont(DATA_PATH)
         self.height = 100
@@ -109,8 +128,8 @@ class RenderText(object):
         self.loitgfonts = []
         self.fonts = []
         probs = []
-        for p, fontname, range0, range1 in loitgfonts:
-            self.fonts.append(LoitgFont(FONT_PATH+fontname, p, (range0, range1)))
+        for p, fontname, w2h, s2h in afonts:
+            self.fonts.append(AFont(FONT_PATH+fontname, p, w2h, s2h))
             probs.append(p)
         self.fontgen = ListGenWithProb(self.fonts, probs)
 
@@ -127,6 +146,17 @@ class RenderText(object):
     
     def genFont(self):
         return self.fontgen.loitgfont()
+    
+    def toMask2(self, afont, txt):
+        ###
+        s2h = random.uniform(afont.s2h[0], afont.s2h[1])
+        w2h = random.uniform(afont.w2h[0], afont.w2h[1])
+        ###
+        
+        txt_arr, _, bbs = self.renderfont.render_singleline(afont.font, txt , w2h, s2h)
+        newwidth = int(txt_arr.shape[1]*w2h)
+        txt_arr = cv2.resize(txt_arr,(newwidth, txt_arr.shape[0]))
+        return txt_arr, txt
     
     def toMask(self, loitgfont, txt, otherlines=False):
         if loitgfont.fontpath == '/home/loitg/Downloads/fonts/fontss/receipts/westgate/PKMN-Mystery-Dungeon.ttf' and any(c in txt for c in ['<','>',';','!','$','#','&','/','`','~','@','%','^','*','.']):

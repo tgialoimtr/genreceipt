@@ -1,0 +1,92 @@
+'''
+Created on Apr 25, 2018
+
+@author: loitg
+'''
+import random
+import numpy as np
+
+class ChangableParam(object):
+    def get_x(self):
+        return self.dtype(self._x)
+
+    def set_x(self, value):
+        self._x = float(value)
+
+    x = property(get_x,set_x)    
+
+
+class RangeParam(ChangableParam):
+    def __init__(self, x, paramrange, dtype=float):
+        self.range = (float(paramrange[0]), float(paramrange[1]))
+        self._x = x
+        assert self._x >= self.range[0] and self._x <= self.range[1]
+        self.dx = (self.range[1] - self.range[0])/20
+        self.dtype = dtype
+    
+    def inc(self):
+        if self._x + self.dx <= self.range[1]:
+            self._x += self.dx
+        return self.dtype(self._x)
+    
+    def dec(self):
+        if self._x - self.dx >= self.range[0]:
+            self._x -= self.dx
+        return self.dtype(self._x)
+    
+
+class LogParam(ChangableParam):
+    def __init__(self, x, dtype=float):
+        self.range = (self.x/2, self.x*2)
+        self._x = x
+        self.dtype = dtype
+    
+    def inc(self):
+        self._x *= 1.2
+        return self.dtype(self._x)
+    
+    def dec(self):
+        self._x /= 1.2
+        return self.dtype(self._x)
+
+class GenerativeParam(object):
+    def __init__(self, dtype=float):
+        self.dtype = dtype
+        self.values = []
+        
+        self.uniform_gen_params = {'enable':True, 
+                                   'lower':0,
+                                   'upper':0
+                                   }
+        self.gaussian_gen_params = {'enable':False, 
+                                    'mean':0,
+                                    'std':0}
+        
+    def snap(self, val):
+        self.values.append(val)
+     
+    def makeDistributor(self):
+        if len(self.values) < 1: return
+        lower = min(self.values)
+        upper = max(self.values)
+        middle = sum(self.values)/len(self.values)
+        onethird = (upper - lower) * 0.3333
+        self.uniform_gen_params =  {'enable':True, 
+                                   'lower': lower - onethird,
+                                   'upper': upper + onethird
+                                    }
+        self.gaussian_gen_params =  {'enable':False, 
+                                   'mean': middle,
+                                   'upper': onethird # fix this
+                                    }
+        
+    def get_x(self):
+        if self.uniform_gen_params['enable']:
+            return random.uniform(self.uniform_gen_params['lower'], self.uniform_gen_params['upper'])
+        if self.uniform_gen_params['enable']:
+            return np.random.normal(self.uniform_gen_params['mean'], self.uniform_gen_params['std'], 1)[0]
+
+    def set_x(self, value):
+        raise Exception
+
+    x = property(get_x,set_x)    

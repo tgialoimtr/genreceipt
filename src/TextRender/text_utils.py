@@ -110,6 +110,53 @@ class RenderFont(object):
 
         pygame.init()
 
+    def render_singleline(self, font, text, w2h, s2h):
+        """
+        renders multiline TEXT on the pygame surface SURF with the
+        font style FONT.
+        A new line in text is denoted by \n, no other characters are 
+        escaped. Other forms of white-spaces should be converted to space.
+
+        returns the updated surface, words and the character bounding boxes.
+        """
+        # font parameters:
+        line_spacing = font.get_sized_height() + 1
+        
+        # initialize the surface to proper size:
+        line_bounds = font.get_rect(text)
+        fsize = (round(2.0*line_bounds.width), round(1.25*line_spacing))
+        surf = pygame.Surface(fsize, pygame.locals.SRCALPHA, 32)
+
+        bbs = []
+        space = font.get_rect('O')
+        x = 0 # carriage-return
+        y = line_spacing # line-feed
+
+        for ch in text: # render each character
+            if ch.isspace(): # just shift
+                x += int(space.width * s2h)
+            else:
+                # render the character
+                ch_bounds = font.render_to(surf, (x,y), ch)
+                ch_bounds.x = x + ch_bounds.x
+                ch_bounds.y = y - ch_bounds.y
+                x += int(ch_bounds.width * s2h)
+                bbs.append(np.array(ch_bounds))
+
+        # get the union of characters for cropping:
+        r0 = pygame.Rect(bbs[0])
+        rect_union = r0.unionall(bbs)
+
+        # get the words:
+        words = ' '.join(text.split())
+
+        # crop the surface to fit the text:
+        bbs = np.array(bbs)
+        surf_arr, bbs = crop_safe(pygame.surfarray.pixels_alpha(surf), rect_union, bbs, pad=5)
+        surf_arr = surf_arr.swapaxes(0,1)
+        #self.visualize_bb(surf_arr,bbs)
+        return surf_arr, words, bbs
+    
     def render_multiline(self,font,text, rel_pad=0.2, rel_line_spacing=0.2, keeponly=-1):
         """
         renders multiline TEXT on the pygame surface SURF with the

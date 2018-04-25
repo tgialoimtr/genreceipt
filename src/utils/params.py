@@ -27,13 +27,13 @@ clconfig.fonts = [
 cmndconfig = obj()
 cmndconfig.date = (["%d-%m-%Y"], [1.1])
 cmndconfig.fontdob = [
-    (0.5, 'cmnd/chu_in/zai_Olivetti-UnderwoodStudio21Typewriter.otf', 0.9, 1.1),
-    (0.5, 'cmnd/chu_in/Kingthings Trypewriter 2.ttf', 0.9, 1.1)
+    (0.5, 'cmnd/chu_in/zai_Olivetti-UnderwoodStudio21Typewriter.otf', (0.9, 1.1), (0.9, 1.1)),
+    (0.5, 'cmnd/chu_in/Kingthings Trypewriter 2.ttf', (0.9, 1.1), (0.9, 1.1))
     ]
 
 cmndconfig.fontid = [
-    (0.25, 'cmnd/so_do/9thyssen.ttf', 0.9, 1.1),
-    (0.25, 'cmnd/so_do/CheltenhamEFBookCondensed Regular.otf', 0.9, 1.1),
-    (0.25, 'cmnd/so_do/Cheltenham_Book.ttf', 0.9, 1.1),
-    (0.25, 'cmnd/so_do/OFFSFOW.ttf', 0.9, 1.1),
+    (0.51, 'cmnd/so_do/9thyssen.ttf', (0.9, 1.1), (1.9, 2.1)),
+    (0.25, 'cmnd/so_do/CheltenhamEFBookCondensed Regular.otf', (0.9, 1.1), (1.9, 2.1)),
+    (0.25, 'cmnd/so_do/Cheltenham_Book.ttf', (0.9, 1.1), (1.9, 2.1)),
+#     (0.25, 'cmnd/so_do/OFFSFOW.ttf', (0.9, 1.1), (0.9, 1.1)),
     ] # CMND 9
