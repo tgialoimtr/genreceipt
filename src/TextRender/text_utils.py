@@ -134,13 +134,13 @@ class RenderFont(object):
 
         for ch in text: # render each character
             if ch.isspace(): # just shift
-                x += int(space.width * s2h)
+                x += space.width + int(space.width * s2h)
             else:
                 # render the character
                 ch_bounds = font.render_to(surf, (x,y), ch)
                 ch_bounds.x = x + ch_bounds.x
                 ch_bounds.y = y - ch_bounds.y
-                x += int(ch_bounds.width * s2h)
+                x += ch_bounds.width + int(space.width * s2h)
                 bbs.append(np.array(ch_bounds))
 
         # get the union of characters for cropping:

@@ -30,10 +30,7 @@ class Params(object):
             ret += paraname + '--' + self.changables[paraname].shortkey + '\n'
         return ret
     
-    def updateFromUser(self):
-        k = raw_input('Select Param: ')
-        inc = k.isupper()
-        k = k.lower()
+    def updateFromUser(self, k, inc):
         if k not in self.shortkey2name: return
         param = self.changables[self.shortkey2name[k]]
         if inc:
@@ -61,7 +58,7 @@ class Params(object):
             print('SNAP ' + paraname + '==' + str(self.changables[paraname].x))
             self.generatives[paraname].snap(self.changables[paraname].x)
 
-    def startGenerative(self, mode):
+    def startGenerative(self):
         self.mode = Params.MODE_GENERATE
         for i, key in enumerate(self.changables.iterkeys()):
             self.generatives[key].makeDistributor()
@@ -73,10 +70,11 @@ class Params(object):
                 return True
         return False
     
-    def load(self, path):
+    @staticmethod
+    def load(path):
         if os.path.exists(path):
             with open(path, 'rb') as f:
-                self = pickle.load(f)
-                return True
-        return False
+                params = pickle.load(f)
+                return params
+        return None
     

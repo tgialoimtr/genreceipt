@@ -4,19 +4,10 @@ Created on Apr 25, 2018
 @author: loitg
 '''
 import random
-import numpy as np
-
-class ChangableParam(object):
-    def get_x(self):
-        return self.dtype(self._x)
-
-    def set_x(self, value):
-        self._x = float(value)
-
-    x = property(get_x,set_x)    
+import numpy as np 
 
 
-class RangeParam(ChangableParam):
+class RangeParam(object):
     def __init__(self, x, paramrange, dtype=float):
         self.range = (float(paramrange[0]), float(paramrange[1]))
         self._x = x
@@ -33,21 +24,35 @@ class RangeParam(ChangableParam):
         if self._x - self.dx >= self.range[0]:
             self._x -= self.dx
         return self.dtype(self._x)
+    def get_x(self):
+        return self.dtype(self._x)
+
+    def set_x(self, value):
+        self._x = float(value)
+
+    x = property(get_x,set_x)  
     
 
-class LogParam(ChangableParam):
+class LogParam(object):
     def __init__(self, x, dtype=float):
-        self.range = (self.x/2, self.x*2)
+        self.range = (x/2, x*2)
         self._x = x
         self.dtype = dtype
     
     def inc(self):
-        self._x *= 1.2
+        self._x *= 1.1
         return self.dtype(self._x)
     
     def dec(self):
-        self._x /= 1.2
+        self._x /= 1.1
         return self.dtype(self._x)
+    def get_x(self):
+        return self.dtype(self._x)
+
+    def set_x(self, value):
+        self._x = float(value)
+
+    x = property(get_x,set_x)  
 
 class GenerativeParam(object):
     def __init__(self, dtype=float):
@@ -70,7 +75,7 @@ class GenerativeParam(object):
         lower = min(self.values)
         upper = max(self.values)
         middle = sum(self.values)/len(self.values)
-        onethird = (upper - lower) * 0.3333
+        onethird = (upper - lower) * 0.1
         self.uniform_gen_params =  {'enable':True, 
                                    'lower': lower - onethird,
                                    'upper': upper + onethird

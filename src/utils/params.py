@@ -32,7 +32,7 @@ cmndconfig.fontdob = [
     ]
 
 cmndconfig.fontid = [
-    (0.51, 'cmnd/so_do/9thyssen.ttf', (0.9, 1.1), (1.9, 2.1)),
+    (0.99, 'cmnd/so_do/9thyssen.ttf', (0.9, 1.1), (1.9, 2.1)),
     (0.25, 'cmnd/so_do/CheltenhamEFBookCondensed Regular.otf', (0.9, 1.1), (1.9, 2.1)),
     (0.25, 'cmnd/so_do/Cheltenham_Book.ttf', (0.9, 1.1), (1.9, 2.1)),
 #     (0.25, 'cmnd/so_do/OFFSFOW.ttf', (0.9, 1.1), (0.9, 1.1)),
