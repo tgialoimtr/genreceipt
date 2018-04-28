@@ -15,6 +15,7 @@ from LightAndShoot.colorize3_poisson import Layer, Colorize
 from TextRender.buildtextmask import rotate_bound
 import math, random
 from ParametersMatching.collections import Params
+from genline.items import RegExGen
 
 def createTextMask(gener, render, si):
     txt = gener.gen()
@@ -45,6 +46,7 @@ class Stack:
     def __init__(self, width, height, params):
         self.colorize = Colorize()
         self.si = ShootEffect()
+        self.idnumbergen = RegExGen(r'[0-3]\d{8}')
         self.p = params
         
         self.ellprender = RenderText(cmndconfig.fontdob)
@@ -190,7 +192,8 @@ class Stack:
         raio_id_gui = self.p.new('raio_id_gui', 1.2, paramrange=(1.0,1.8)).x
         
         lGuiBgSo = self.buildGuillocheBGSo(idheight, -idangle, sodo_col)
-        lId = self.buildID('272311968', sodo_col, int(idheight*raio_id_gui), idangle)
+        txt = self.idnumbergen.gen()
+        lId = self.buildID(txt, sodo_col, int(idheight*raio_id_gui), idangle)
         lOtherLine = self.buildOtherLines(idangle, sodo_col)
         lGuiBG = self.buildGuillocheBG(guilloche_col)
         l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=bg_col)
@@ -211,7 +214,7 @@ class Stack:
         idline = self.si.heterogeneous(idline)
         idline = self.si.colorBlob(idline)
 #         idline = self.si.lowresolution(idline)
-        return idline
+        return idline, txt
         
 if __name__ == '__main__': 
 
@@ -250,32 +253,30 @@ if __name__ == '__main__':
         
      
     # GEN process:
-    paramMgr.startGenerative()       
-    for i in range(100):
-        img = cmndgen.gen()
-#         newwidth = img.shape[1] * 32.0 / img.shape[0]
-#         img = cv2.resize(img, (int(newwidth), 32))
-        cv2.imshow('hihi', img)
-        k = cv2.waitKey(-1)       
+    paramMgr.startGenerative()          
             
             
     root = '/home/loitg/Downloads/images_txt/'
-    with open(root + 'anno-train.txt', 'w') as annotation_train:
-        with open(root + 'anno-test.txt', 'w') as annotation_test:
-            for i in range(300000):
+    paramMgr.startGenerative() 
+    with open(root + 'anno-train.txt', 'a') as annotation_train:
+        with open(root + 'anno-test.txt', 'a') as annotation_test:
+            for i in range(1, 300000):
                 print i, '-----------------------'
+                cmndgen.width = random.randint(520, 590)
                 rs, txt = cmndgen.gen()
                 if rs is None: continue
                 txt = txt.strip()
-#                 cv2.imwrite(root + str(i) + '.jpg', rs)
+                newwidth = rs.shape[1] * 32.0 / rs.shape[0]
+                rs = cv2.resize(rs, (int(newwidth), 32))
+                cv2.imwrite(root + str(i) + '.jpg', rs)
                 print '@@@'+txt+'@@@'
-                cv2.imshow('hihi', rs)
-                cv2.waitKey(-1)
+#                 cv2.imshow('hihi', rs)
+#                 cv2.waitKey(-1)
                 
-#                 if i < 295000:
-#                     annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')
-#                 else:
-#                     annotation_test.write('./' + str(i) + '.jpg ' + txt + '\n')
+                if i < 295000:
+                    annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')
+                else:
+                    annotation_test.write('./' + str(i) + '.jpg ' + txt + '\n')
         
         
 
