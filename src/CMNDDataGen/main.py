@@ -16,33 +16,33 @@ if __name__ == '__main__':
     #load Generatives if saved
     savedpath = '/home/loitg/Downloads/cmnd_aia/params.pkl'
     if os.path.isfile(savedpath):
-        paramMgr = Params.load(savedpath)
+        paramMgr = Params.load(savedpath)  
     else:
         paramMgr = Params()
     cmndgen = Stack(550,80, paramMgr)
-    img = cmndgen.gen()
-#     #genShortKey
-#     desc = paramMgr.genShortKeys()
-#     # TUNE/CHANGING pocess:
-#     while(True):
-#         print(desc)
-#         #updateFromUser
-#         k = raw_input('Select Param: ')
-#         inc = k.isupper()
-#         k = k.lower()
-#         paramMgr.updateFromUser(k, inc)
-#         #apply and show 
-#         img = cmndgen.gen()
-#         cv2.imshow('hihi', img)
-#         cv2.waitKey(300)
-#         if k == '1':
-#             paramMgr.snapShot()
-#         elif k == '2':
-#             break
-#                  
-#     paramMgr.save(savedpath)
-#          
-#     sys.exit(0)  
+    img = cmndgen.genIDDen()
+    #genShortKey
+    desc = paramMgr.genShortKeys()
+    # TUNE/CHANGING pocess:
+    while(True):
+        print(desc)
+        #updateFromUser
+        k = raw_input('Select Param: ')
+        inc = k.isupper()
+        k = k.lower()
+        paramMgr.updateFromUser(k, inc)
+        #apply and show 
+        img, txt = cmndgen.genIDDen()
+        cv2.imshow('hihi', img)
+        cv2.waitKey(300)
+        if k == '1':
+            paramMgr.snapShot()
+        elif k == '2':
+            break
+                  
+    paramMgr.save(savedpath)
+          
+    sys.exit(0)  
          
     
         
@@ -58,15 +58,17 @@ if __name__ == '__main__':
             for i in range(1, 300000):
                 print i, '-----------------------'
                 cmndgen.width = random.randint(520, 590)
-                rs, txt = cmndgen.gen()
+                rs, txt = cmndgen.genID()
                 if rs is None: continue
                 txt = txt.strip()
-                newwidth = rs.shape[1] * 32.0 / rs.shape[0]
-                rs = cv2.resize(rs, (int(newwidth), 32))
-                cv2.imwrite(root + str(i) + '.jpg', rs)
+#                 newwidth = rs.shape[1] * 32.0 / rs.shape[0]
+#                 rs = cv2.resize(rs, (int(newwidth), 32))
+#                 cv2.imwrite(root + str(i) + '.jpg', rs)
                 print '@@@'+txt+'@@@'
-#                 cv2.imshow('hihi', rs)
-#                 cv2.waitKey(-1)
+                cv2.imshow('hihi', rs)
+                cv2.waitKey(-1)
+                
+                continue
                 
                 if i < 295000:
                     annotation_train.write('./' + str(i) + '.jpg ' + txt + '\n')

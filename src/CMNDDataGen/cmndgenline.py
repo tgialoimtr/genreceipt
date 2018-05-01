@@ -58,10 +58,9 @@ class Stack:
         self.idnumbergen = RegExGen(r'[0-3]\d{8}')
         self.dobgen = DateGen(fromdate='1940-01-01', todate='1999-12-31', dateformat=cmndconfig.date)
         self.p = params
-        
-        self.ellpfonts = Fonts(cmndconfig.fontkeys)
+
+        self.valuefonts = Fonts(cmndconfig.fontvalues)
         self.keyfonts = Fonts(cmndconfig.fontkeys)
-        self.dobfonts = Fonts(cmndconfig.fontvalues)
         self.idfonts = Fonts(cmndconfig.fontid)
         
         self.width = width
@@ -150,10 +149,18 @@ class Stack:
         
         return Layer(alpha=alpha, color=self.guilloche_col)            
     
-    def buildEllipse(self, y0, dx, includeKey=True):
-        mask, txt = self.ellprender.toMask2(self.ellprender.genFont(), txt=txt)
-        
-        return Layer()
+    def buildNameKey(self, height, angel):
+        x0 = int( self.p.new('namekey_x0', self.width/2, paramrange=(0,self.width)).x )
+        y0 = int( self.p.new('namekey_y0', self.height/2, paramrange=(0,self.height)).x)
+        txt = 'Họ tên:' + '.'*40      
+        afont = self.keyfonts.genByName('arial')
+        temp = self.p.new('kelltype_s2h', 1.0).x
+        afont.s2h = (temp,temp)
+        temp = self.p.new('kelltype_w2h', 1.0).x
+        afont.w2h = (temp,temp)
+        mask, txt = self.renderer.toMask2(afont, txt=txt)
+        adapted_mask = self.putMask(mask, (height, x0, y0, angel))
+        return Layer(alpha= adapted_mask, color=self.text_col)
     
     def buildOtherLines(self, angle):
         mask, txt = self.renderer.toMask2(self.keyfonts.genByName('arial'), txt='CHUNG MINH NHAN DAN')
@@ -163,42 +170,117 @@ class Stack:
         
         return Layer(alpha= adapted_mask, color=self.sodo_col)
     
-    def buildDOB(self, txt):
-        mask, txt = self.dobrender.toMask2(self.dobrender.genFont(), txt=txt)
-        #move mask
-        adapted_mask = self.putMask(mask, (64, 20,20,5))
-        
-        return Layer(alpha= adapted_mask, color=(0,0,0))
-    
-    def buildID(self, txt, height, angel):
-        afont = self.idfonts.genByName('9thyssen')
-        temp = self.p.new('s2h', 1.0).x
+    def buildName(self, txt, height, angel):
+        x0 = int( self.p.new('nameval_x0', self.width/2, paramrange=(0,self.width)).x )
+        y0 = int( self.p.new('nameval_y0', self.height/2, paramrange=(0,self.height)).x)
+        afont = self.valuefonts.genByName('Kingthings') #Olivetti, pala.ttf, palab.ttf
+        temp = self.p.new('nametype_s2h', 1.0).x
         afont.s2h = (temp,temp)
-        temp = self.p.new('w2h', 1.0).x
-        afont.w2h = (temp,temp)  
+        temp = self.p.new('nametype_w2h', 1.0).x
+        afont.w2h = (temp,temp)
+        mask, txt = self.renderer.toMask2(afont, txt=txt)
+        #move mask
+        adapted_mask = self.putMask(mask, (height, x0, y0, angel))
+        return Layer(alpha= adapted_mask, color=self.text_col)
+    
+    def buildID(self, txt, height, angel, p_den=1.1):
+        if np.random.rand() < p_den:
+            afont = self.idfonts.genByName('UTM Helve.ttf')
+            temp = self.p.new('idblack_s2h', 1.0).x
+            afont.s2h = (temp,temp)
+            temp = self.p.new('idblack_w2h', 1.0).x
+            afont.w2h = (temp,temp)
+            col = self.text_col 
+        else:
+            afont = self.idfonts.genByName('9thyssen')
+            temp = self.p.new('s2h', 1.0, freeze=True).x
+            afont.s2h = (temp,temp)
+            temp = self.p.new('w2h', 1.0, freeze=True).x
+            afont.w2h = (temp,temp)
+            col = self.sodo_col
         mask, txt = self.renderer.toMask2(afont, txt=txt)
         adapted_mask = self.putMask(mask, (height, self.x0, self.y0, angel))
-        return Layer(alpha= adapted_mask, color=self.sodo_col)
+        return Layer(alpha= adapted_mask, color=col)
     
     def buildGuillocheBGSo(self, height, angel):
         alpha= np.zeros((self.height, self.width),'uint8')
         dy = height*1.0/5
         x0 = self.x0
         y0 = self.y0 - height/2
-        amp = self.p.new('gui_amp', dy/2).x
-        wavelength = self.p.new('wavelength', dy*4).x
-        length = self.p.new('length', self.height*7, paramrange=(self.height*5, self.height*9)).x
+        amp = self.p.new('gui_amp', dy/2, freeze=True).x
+        wavelength = self.p.new('wavelength', dy*4, freeze=True).x
+        length = self.p.new('length', self.height*7, paramrange=(self.height*5, self.height*9), freeze=True).x
         phase = random.randint(0, 360)
         thick = random.randint(1, 2)
         for i in range(6):
             pts = self.sineWave(x0, int(i*dy + y0), length, amp, wavelength, phase=phase)
             cv2.polylines(alpha, [pts], isClosed=False, color=255, thickness=thick)
-            
-        
         rotM = cv2.getRotationMatrix2D((x0,y0),angel,1)
         alpha = cv2.warpAffine(alpha,rotM,(alpha.shape[1], alpha.shape[0]))
         
         return Layer(alpha=alpha, color=self.sodo_col)
+
+    def genName(self):
+        ### PARAMETERS
+        self.buildCommonParams()        
+        idheight = int( self.p.new('height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        idangle = self.p.new('angle', 0, paramrange=(-5,5), freeze=True).x
+        raio_id_gui = self.p.new('idblack_raio_id_gui', 1.2, paramrange=(1.0,1.8)).x
+        ### LAYERS
+        txt = self.idnumbergen.gen()
+        lnamekey = self.buildNameKey(height, angel)
+        lnameval = self.buildName(txt, int(idheight*raio_id_gui), idangle)
+        lGuiBG = self.buildGuillocheBG()
+        l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
+        ### EFFECTS
+        lGuiBG.alpha = random.uniform(0.4,0.95) * lGuiBG.alpha
+        lOtherLine.alpha = random.uniform(0.4,0.95) * lOtherLine.alpha
+        lId.alpha = self.si.inkeffect(lId.alpha)
+        lId.alpha = self.si.matnet(lId.alpha)
+        lId.alpha = self.si.sonhoe(lId.alpha)
+        lId.alpha = self.si.blur(lId.alpha)
+        lGuiBgSo.alpha = self.si.matnet(lGuiBgSo.alpha)
+        lGuiBgSo.alpha = self.si.blur(lGuiBgSo.alpha)
+        ### MERGES
+        layers = [lId, lGuiBgSo, lOtherLine, lGuiBG, l_bg]
+        blends = ['normal'] * len(layers)
+        idline = self.colorize.merge_down(layers, blends).color
+        idline = self.si.addnoise(idline)
+        idline = self.si.heterogeneous(idline)
+        idline = self.si.colorBlob(idline)
+        return idline, txt
+
+    def genIDDen(self):
+        ### PARAMETERS
+        self.buildCommonParams()        
+        idheight = int( self.p.new('height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        idangle = self.p.new('angle', 0, paramrange=(-5,5), freeze=True).x
+        raio_id_gui = self.p.new('idblack_raio_id_gui', 1.2, paramrange=(1.0,1.8)).x
+        ### LAYERS
+        lGuiBgSo = self.buildGuillocheBGSo(idheight, idangle)
+        txt = self.idnumbergen.gen()
+        lId = self.buildID(txt, int(idheight*raio_id_gui), idangle)
+        lOtherLine = self.buildOtherLines(idangle)
+        lGuiBG = self.buildGuillocheBG()
+        l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
+        ### EFFECTS
+        lGuiBG.alpha = random.uniform(0.4,0.95) * lGuiBG.alpha
+        lOtherLine.alpha = random.uniform(0.4,0.95) * lOtherLine.alpha
+        lId.alpha = self.si.inkeffect(lId.alpha)
+        lId.alpha = self.si.matnet(lId.alpha)
+        lId.alpha = self.si.sonhoe(lId.alpha)
+        lId.alpha = self.si.blur(lId.alpha)
+        lGuiBgSo.alpha = self.si.matnet(lGuiBgSo.alpha)
+        lGuiBgSo.alpha = self.si.blur(lGuiBgSo.alpha)
+        ### MERGES
+        layers = [lId, lGuiBgSo, lOtherLine, lGuiBG, l_bg]
+        blends = ['normal'] * len(layers)
+        idline = self.colorize.merge_down(layers, blends).color
+        idline = self.si.addnoise(idline)
+        idline = self.si.heterogeneous(idline)
+        idline = self.si.colorBlob(idline)
+        return idline, txt
+                
 
     def buildCommonParams(self):
         bg_col_hsv = (random.randint(122,220)*180/360, random.randint(1,16)*255/100, random.randint(60,95)*255/100)
@@ -212,15 +294,15 @@ class Stack:
         self.guilloche_col = hsv2bgr(guilloche_col_hsv)
         self.text_col = (random.randint(2,69), random.randint(2,69), random.randint(2,69)) #hsv2bgr(text_col_hsv)
         self.sodo_col = hsv2bgr(sodo_col_hsv) 
-        self.x0 = self.p.new('center_x_id', self.width/2, paramrange=(0, self.width)).x
-        self.y0 = self.p.new('center_y_id', self.height/2, paramrange=(0, self.height)).x 
+        self.x0 = self.p.new('center_x_id', self.width/2, paramrange=(0, self.width), freeze=True).x
+        self.y0 = self.p.new('center_y_id', self.height/2, paramrange=(0, self.height), freeze=True).x 
 
     def genID(self):
         ### PARAMETERS
         self.buildCommonParams()        
-        idheight = int( self.p.new('height-scale', 0.5, paramrange=(0.3,0.8)).x * self.height )
-        idangle = self.p.new('angle', 0, paramrange=(-5,5)).x
-        raio_id_gui = self.p.new('raio_id_gui', 1.2, paramrange=(1.0,1.8)).x
+        idheight = int( self.p.new('height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        idangle = self.p.new('angle', 0, paramrange=(-5,5), freeze=True).x
+        raio_id_gui = self.p.new('raio_id_gui', 1.2, paramrange=(1.0,1.8), freeze=True).x
         ### LAYERS
         lGuiBgSo = self.buildGuillocheBGSo(idheight, idangle)
         txt = self.idnumbergen.gen()

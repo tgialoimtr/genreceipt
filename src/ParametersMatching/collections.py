@@ -24,28 +24,32 @@ class Params(object):
         ret = ''
         keys = allowedKeys[:len(self.changables)]
         self.shortkey2name = {}
-        for i, paraname in enumerate(self.changables.iterkeys()):
+        i = 0
+        for _, paraname in enumerate(self.changables.iterkeys()):
+            if self.changables[paraname].freeze: continue
             self.changables[paraname].shortkey = keys[i]
             self.shortkey2name[keys[i]] = paraname
+            i += 1
             ret += paraname + '--' + self.changables[paraname].shortkey + '\n'
         return ret
     
     def updateFromUser(self, k, inc):
         if k not in self.shortkey2name: return
         param = self.changables[self.shortkey2name[k]]
+        if param.freeze: return
         if inc:
             param.inc()
         else:
             param.dec()
                 
-    def new(self, name, initval = None, paramrange=None):
+    def new(self, name, initval = None, paramrange=None, freeze=False):
         if self.mode == Params.MODE_CHANGING:
             if name not in self.changables:
                 assert initval is not None
                 if paramrange is None:
-                    self.changables[name] = LogParam(initval, dtype=type(initval))
+                    self.changables[name] = LogParam(initval, dtype=type(initval), freeze=freeze)
                 else:
-                    self.changables[name] = RangeParam(initval, paramrange, dtype=type(initval))
+                    self.changables[name] = RangeParam(initval, paramrange, dtype=type(initval), freeze=freeze)
             
             return self.changables[name]
         elif self.mode == Params.MODE_GENERATE:
