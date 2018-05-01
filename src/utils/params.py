@@ -26,14 +26,22 @@ clconfig.fonts = [
 
 cmndconfig = obj()
 cmndconfig.date = (["%d-%m-%Y"], [1.1])
-cmndconfig.fontdob = [
+cmndconfig.fontvalues = [
     (0.5, 'cmnd/chu_in/zai_Olivetti-UnderwoodStudio21Typewriter.otf', (0.9, 1.1), (0.9, 1.1)),
-    (0.5, 'cmnd/chu_in/Kingthings Trypewriter 2.ttf', (0.9, 1.1), (0.9, 1.1))
+    (0.5, 'cmnd/chu_in/Kingthings Trypewriter 2.ttf', (0.9, 1.1), (0.9, 1.1)),
+    (0.5, 'cmnd/chu_in/pala.ttf', (0.9, 1.1), (0.9, 1.1)),
+    (0.5, 'cmnd/chu_in/palab.ttf', (0.9, 1.1), (0.9, 1.1)),
+    
+    ]
+
+cmndconfig.fontkeys = [
+    (1.0, 'cmnd/keys/arial.ttf', (0.9, 1.1), (0.9, 1.1)),
     ]
 
 cmndconfig.fontid = [
-    (0.99, 'cmnd/so_do/9thyssen.ttf', (0.9, 1.1), (1.9, 2.1)),
-    (0.25, 'cmnd/so_do/CheltenhamEFBookCondensed Regular.otf', (0.9, 1.1), (1.9, 2.1)),
-    (0.25, 'cmnd/so_do/Cheltenham_Book.ttf', (0.9, 1.1), (1.9, 2.1)),
-#     (0.25, 'cmnd/so_do/OFFSFOW.ttf', (0.9, 1.1), (0.9, 1.1)),
+    (0.17, 'cmnd/so_do/9thyssen.ttf', (0.9, 1.1), (1.9, 2.1)),
+    (0.17, 'cmnd/so_do/CheltenhamEFBookCondensed Regular.otf', (0.9, 1.1), (1.9, 2.1)),
+    (0.16, 'cmnd/so_do/Cheltenham_Book.ttf', (0.9, 1.1), (1.9, 2.1)),
+    (0.25, 'cmnd/so_den/UTM Helve.ttf', (0.9, 1.1), (1.9, 2.1)),
+    (0.25, 'cmnd/so_den/UTM HelveBold.ttf', (0.9, 1.1), (1.9, 2.1)),
     ] # CMND 9

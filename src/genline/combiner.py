@@ -49,12 +49,10 @@ class ListGenWithProb(Gen):
         pval = np.random.rand() #[0.0-1.0]
         for pval_ceil, gen in self.genlist:
             if pval_ceil > pval:
-                return gen.gen()
-    def loitgfont(self):
-        pval = np.random.rand() #[0.0-1.0]
-        for pval_ceil, gen in self.genlist:
-            if pval_ceil > pval:
-                return gen
+                try:
+                    return gen.gen()
+                except Exception:
+                    return gen
     
     
 class KeyValueCombiner(Gen):
@@ -129,7 +127,14 @@ class PairGen(Gen):
     def gen(self):
         return self.gener.gen()
         
-   
+class LambdaGen(Gen):
+    
+    def __init__(self, func):
+        self.func = func
+        
+    def gen(self):
+        return self.func()
+    
 if __name__ == '__main__':
     g1 = RegExGen(r'\d')
     g2 = RegExGen(r'\D')

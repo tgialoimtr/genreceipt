@@ -63,7 +63,7 @@ def rotate_bound(image, angle):
     # grab the rotation matrix (applying the negative of the
     # angle to rotate clockwise), then grab the sine and cosine
     # (i.e., the rotation components of the matrix)
-    M = cv2.getRotationMatrix2D((cX, cY), -angle, 1.0)
+    M = cv2.getRotationMatrix2D((cX, cY), angle, 1.0)
     cos = np.abs(M[0, 0])
     sin = np.abs(M[0, 1])
  
@@ -95,7 +95,13 @@ class AFont(object):
     
     def getFont(self):
         return self.font    
-    
+
+    def isIn(self, queries):
+        name = self.fontpath.split('/', 1)[1].lower()
+        for query in queries:
+            if query.lower() in name:
+                return True
+        return False
 
 class LoitgFont(object):
     
@@ -116,10 +122,36 @@ class LoitgFont(object):
     
     def getRatio(self):
         return (self.widthrange[1] - self.widthrange[0])*np.random.sample() + self.widthrange[0]
+
+class Fonts(object):
+    allfonts = {}
+    def __init__(self, afonts):
+        self.fonts = []
+        probs = []
+        for p, fontname, w2h, s2h in afonts:
+            font = AFont(FONT_PATH+fontname, p, w2h, s2h)
+            self.allfonts[FONT_PATH+fontname] = font
+            self.fonts.append(font)
+            probs.append(p)
+        self.fontgen = ListGenWithProb(self.fonts, probs)
+        
+    def genRandom(self):
+        return self.fontgen.gen()
     
+    def genByName(self, query):
+        rs = []
+        for name, font in self.allfonts.iteritems():
+            name = name.split('/', 1)[1]
+            if query.lower() in name.lower():
+                rs.append(font)
+        if len(rs) == 1:
+            return rs[0]
+        else:
+            return None
+        
     
 class RenderText(object):
-    def __init__(self, afonts):
+    def __init__(self, afonts=[]):
         pygame.init()
         self.renderfont = RenderFont(DATA_PATH)
         self.height = 100
@@ -131,7 +163,7 @@ class RenderText(object):
         for p, fontname, w2h, s2h in afonts:
             self.fonts.append(AFont(FONT_PATH+fontname, p, w2h, s2h))
             probs.append(p)
-        self.fontgen = ListGenWithProb(self.fonts, probs)
+        if len(self.fonts) > 0: self.fontgen = ListGenWithProb(self.fonts, probs)
 
     def init_font(self, fontpath, spacing):
         font = freetype.Font(FONT_PATH + fontpath, size=self.height)
@@ -145,7 +177,10 @@ class RenderText(object):
         return font    
     
     def genFont(self):
-        return self.fontgen.loitgfont()
+        if len(self.fonts) > 0:
+            return self.fontgen.gen()
+        else:
+            return None
     
     def toMask2(self, afont, txt):
         ###
