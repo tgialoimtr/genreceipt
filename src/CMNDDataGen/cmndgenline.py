@@ -150,9 +150,9 @@ class Stack:
         return Layer(alpha=alpha, color=self.guilloche_col)            
     
     def buildNameKey(self, height, angel):
-        x0 = int( self.p.new('namekey_x0', self.width/2, paramrange=(0,self.width)).x )
-        y0 = int( self.p.new('namekey_y0', self.height/2, paramrange=(0,self.height)).x)
-        txt = 'Họ tên:' + '.'*40      
+        x0 = int( self.p.new('namekey_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
+        y0 = int( self.p.new('namekey_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
+        txt = 'Họ tên:' + '.'*80      
         afont = self.keyfonts.genByName('arial')
         temp = self.p.new('kelltype_s2h', 1.0).x
         afont.s2h = (temp,temp)
@@ -171,18 +171,59 @@ class Stack:
         return Layer(alpha= adapted_mask, color=self.sodo_col)
     
     def buildName(self, txt, height, angel):
-        x0 = int( self.p.new('nameval_x0', self.width/2, paramrange=(0,self.width)).x )
-        y0 = int( self.p.new('nameval_y0', self.height/2, paramrange=(0,self.height)).x)
-        afont = self.valuefonts.genByName('Kingthings') #Olivetti, pala.ttf, palab.ttf
-        temp = self.p.new('nametype_s2h', 1.0).x
+        x0 = int( self.p.new('nameval_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
+        y0 = int( self.p.new('nameval_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
+        afont = self.valuefonts.genByName('Olivetti') #Kingthings,Olivetti, pala.ttf, palab.ttf
+        temp = self.p.new('nametype_s2h', 1.0, freeze=True).x
         afont.s2h = (temp,temp)
-        temp = self.p.new('nametype_w2h', 1.0).x
+        temp = self.p.new('nametype_w2h', 1.0, freeze=True).x
         afont.w2h = (temp,temp)
         mask, txt = self.renderer.toMask2(afont, txt=txt)
         #move mask
         adapted_mask = self.putMask(mask, (height, x0, y0, angel))
         return Layer(alpha= adapted_mask, color=self.text_col)
     
+    def buildDOBKey(self, height, angel):
+        x0 = int( self.p.new('dobkey_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
+        y0 = int( self.p.new('dobkey_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
+        txt = 'Sinh ngày:' + '.'*80      
+        afont = self.keyfonts.genByName('arial')
+        temp = self.p.new('kelltype_s2h', 1.0, freeze=True).x
+        afont.s2h = (temp,temp)
+        temp = self.p.new('kelltype_w2h', 1.0, freeze=True).x
+        afont.w2h = (temp,temp)
+        mask, txt = self.renderer.toMask2(afont, txt=txt)
+        adapted_mask = self.putMask(mask, (height, x0, y0, angel))
+        return Layer(alpha= adapted_mask, color=self.text_col)
+    
+    def buildDOB(self, txt, height, angel, p_chuin=0.3):
+        x0 = int( self.p.new('dobval_x0', self.width/2, paramrange=(0,self.width), freeze=True).x )
+        y0 = int( self.p.new('dobval_y0', self.height/2, paramrange=(0,self.height), freeze=True).x)
+        p = np.random.rand()
+#         if p < (1 - p_chuin)/2:
+#             afont = self.valuefonts.genByName('Olivetti') #Kingthings,Olivetti, pala.ttf, palab.ttf
+#             temp = self.p.new('dob_olivette_s2h', 1.0, freeze=True).x
+#             afont.s2h = (temp,temp)
+#             temp = self.p.new('dob_olivette_w2h', 1.0, freeze=True).x
+#             afont.w2h = (temp,temp)
+        if p < (1 - p_chuin):
+            afont = self.valuefonts.genByName('Kingthings') #Kingthings,Olivetti, pala.ttf, palab.ttf
+            temp = self.p.new('dob_kingthings_s2h', 1.0, freeze=True).x
+            afont.s2h = (temp,temp)
+            temp = self.p.new('dob_kingthings_w2h', 1.0, freeze=True).x
+            afont.w2h = (temp,temp)           
+        else:
+            afont = self.valuefonts.genByName('pala.ttf') #Kingthings,Olivetti, pala.ttf, palab.ttf
+            temp = self.p.new('dob_pala_s2h', 1.0).x
+            afont.s2h = (temp,temp)
+            temp = self.p.new('dob_pala_w2h', 1.0).x
+            afont.w2h = (temp,temp)             
+        mask, txt = self.renderer.toMask2(afont, txt=txt)
+        #move mask
+        adapted_mask = self.putMask(mask, (height, x0, y0, angel))
+        return Layer(alpha= adapted_mask, color=self.text_col)
+    
+        
     def buildID(self, txt, height, angel, p_den=1.1):
         if np.random.rand() < p_den:
             afont = self.idfonts.genByName('UTM Helve.ttf')
@@ -220,35 +261,61 @@ class Stack:
         
         return Layer(alpha=alpha, color=self.sodo_col)
 
-    def genName(self):
+    def genDOB(self):
         ### PARAMETERS
         self.buildCommonParams()        
-        idheight = int( self.p.new('height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
-        idangle = self.p.new('angle', 0, paramrange=(-5,5), freeze=True).x
-        raio_id_gui = self.p.new('idblack_raio_id_gui', 1.2, paramrange=(1.0,1.8)).x
+        nameheight = int( self.p.new('dobval_height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        namekeyheight = int( self.p.new('dobkey_height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        nameangle = self.p.new('angle', 0, paramrange=(-5,5)).x
         ### LAYERS
-        txt = self.idnumbergen.gen()
-        lnamekey = self.buildNameKey(height, angel)
-        lnameval = self.buildName(txt, int(idheight*raio_id_gui), idangle)
+        txt = self.dobgen.gen()
+        lnamekey = self.buildDOBKey(namekeyheight, nameangle)
+        lnameval = self.buildDOB(txt, nameheight, nameangle)
         lGuiBG = self.buildGuillocheBG()
         l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
         ### EFFECTS
         lGuiBG.alpha = random.uniform(0.4,0.95) * lGuiBG.alpha
-        lOtherLine.alpha = random.uniform(0.4,0.95) * lOtherLine.alpha
-        lId.alpha = self.si.inkeffect(lId.alpha)
-        lId.alpha = self.si.matnet(lId.alpha)
-        lId.alpha = self.si.sonhoe(lId.alpha)
-        lId.alpha = self.si.blur(lId.alpha)
-        lGuiBgSo.alpha = self.si.matnet(lGuiBgSo.alpha)
-        lGuiBgSo.alpha = self.si.blur(lGuiBgSo.alpha)
+        lnamekey.alpha = random.uniform(0.4,0.95) * lnamekey.alpha
+        lnameval.alpha = self.si.inkeffect(lnameval.alpha)
+        lnameval.alpha = self.si.matnet(lnameval.alpha)
+        lnameval.alpha = self.si.sonhoe(lnameval.alpha)
+        lnameval.alpha = self.si.blur(lnameval.alpha)
         ### MERGES
-        layers = [lId, lGuiBgSo, lOtherLine, lGuiBG, l_bg]
+        layers = [lnameval, lnamekey, lGuiBG, l_bg]
         blends = ['normal'] * len(layers)
-        idline = self.colorize.merge_down(layers, blends).color
-        idline = self.si.addnoise(idline)
-        idline = self.si.heterogeneous(idline)
-        idline = self.si.colorBlob(idline)
-        return idline, txt
+        nameline = self.colorize.merge_down(layers, blends).color
+        nameline = self.si.addnoise(nameline)
+        nameline = self.si.heterogeneous(nameline)
+        nameline = self.si.colorBlob(nameline)
+        return nameline, txt
+    
+    def genName(self):
+        ### PARAMETERS
+        self.buildCommonParams()        
+        nameheight = int( self.p.new('nameval_height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        namekeyheight = int( self.p.new('namekey_height-scale', 0.5, paramrange=(0.3,0.8), freeze=True).x * self.height )
+        nameangle = self.p.new('angle', 0, paramrange=(-5,5), freeze=True).x
+        ### LAYERS
+        txt = no_accent_vietnamese(self.namegen.gen())
+        lnamekey = self.buildNameKey(namekeyheight, nameangle)
+        lnameval = self.buildName(txt, nameheight, nameangle)
+        lGuiBG = self.buildGuillocheBG()
+        l_bg = Layer(alpha=255*np.ones((self.height, self.width),'uint8'), color=self.bg_col)
+        ### EFFECTS
+        lGuiBG.alpha = random.uniform(0.4,0.95) * lGuiBG.alpha
+        lnamekey.alpha = random.uniform(0.4,0.95) * lnamekey.alpha
+        lnameval.alpha = self.si.inkeffect(lnameval.alpha)
+        lnameval.alpha = self.si.matnet(lnameval.alpha)
+        lnameval.alpha = self.si.sonhoe(lnameval.alpha)
+        lnameval.alpha = self.si.blur(lnameval.alpha)
+        ### MERGES
+        layers = [lnameval, lnamekey, lGuiBG, l_bg]
+        blends = ['normal'] * len(layers)
+        nameline = self.colorize.merge_down(layers, blends).color
+        nameline = self.si.addnoise(nameline)
+        nameline = self.si.heterogeneous(nameline)
+        nameline = self.si.colorBlob(nameline)
+        return nameline, txt
 
     def genIDDen(self):
         ### PARAMETERS
@@ -329,9 +396,10 @@ class Stack:
         return idline, txt
     
 if __name__ == '__main__':
-    c9gen = Stack(550,80, Params())      
+    c9gen = Stack(550,80, Params())
+    c9gen.createNameGen() 
     for i in range(200):    
-        img, txt = c9gen.genID()
+        img, txt = c9gen.genDOB()
         print '---' + txt + '---'
         cv2.imshow('hihi', img)
         cv2.waitKey(-1)

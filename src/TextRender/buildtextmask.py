@@ -142,7 +142,6 @@ class Fonts(object):
         rs = []
         for name, font in self.allfonts.iteritems():
             name = name.split('/')[-1]
-            print(query.lower() + ' in ' + name.lower())
             if query.lower() in name.lower():
                 rs.append(font)
         if len(rs) == 1:

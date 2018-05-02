@@ -50,7 +50,8 @@ class Params(object):
                     self.changables[name] = LogParam(initval, dtype=type(initval), freeze=freeze)
                 else:
                     self.changables[name] = RangeParam(initval, paramrange, dtype=type(initval), freeze=freeze)
-            
+            else:
+                self.changables[name].freeze = freeze
             return self.changables[name]
         elif self.mode == Params.MODE_GENERATE:
             return self.generatives[name]

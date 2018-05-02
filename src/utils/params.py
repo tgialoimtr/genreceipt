@@ -25,7 +25,7 @@ clconfig.fonts = [
 
 
 cmndconfig = obj()
-cmndconfig.date = (["%d-%m-%Y"], [1.1])
+cmndconfig.date = (["%d-%m-%Y", "%Y", "%-d-%-m-%Y"], [0.6,0.1,0.31])
 cmndconfig.fontvalues = [
     (0.5, 'cmnd/chu_in/zai_Olivetti-UnderwoodStudio21Typewriter.otf', (0.9, 1.1), (0.9, 1.1)),
     (0.5, 'cmnd/chu_in/Kingthings Trypewriter 2.ttf', (0.9, 1.1), (0.9, 1.1)),
